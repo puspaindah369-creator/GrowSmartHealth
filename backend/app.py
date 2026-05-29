@@ -185,10 +185,13 @@ def load_optional_best_models_info_by_gender() -> Dict[str, Dict[str, object]]:
 BEST_MODELS_INFO_BY_GENDER = load_optional_best_models_info_by_gender()
 
 
-def load_encoder_info() -> Optional[Dict[str, object]]:
+def load_encoder_info() -> Dict[str, object]:
     # Encoder dipakai untuk mengubah gender ke bentuk numerik.
     if not ENCODER_INFO_PATH.exists():
-        return None
+        raise FileNotFoundError(
+            f"File label encoder tidak ditemukan: {ENCODER_INFO_PATH}\n"
+            "Jalankan ulang notebook sampai cell penyimpanan label encoder."
+        )
 
     return joblib.load(ENCODER_INFO_PATH)
 
@@ -759,79 +762,6 @@ def apply_who_mapping(
     return indicator
 
 
-def who_indicator(z_text: str, display_order: List[str], classifier) -> Dict[str, object]:
-    # Bentuk indikator fallback saat file model tidak tersedia di deployment publik.
-    z = float(z_text)
-    result, cls = classifier(z)
-    return {
-        "result": result,
-        "cls": cls,
-        "z": z_text,
-        "probs": {
-            label: 1.0 if label == result else 0.0
-            for label in display_order
-        },
-        "labels": display_order,
-        "model_name": "WHO fallback",
-        "model_scope": "who_fallback",
-    }
-
-
-def who_fallback_payload(
-    *,
-    age: float,
-    weight: float,
-    height: float,
-    gender_code: str,
-    gender_enc: int,
-    date_of_birth: date,
-    date_of_birth_days: int,
-    date_of_measurement: date,
-    date_of_measurement_days: int,
-) -> Dict[str, object]:
-    # Prediksi cadangan agar backend tetap berjalan tanpa artefak model .pkl.
-    wa = who_indicator(
-        compute_wa_z(age=age, weight=weight),
-        WA_DISPLAY_ORDER,
-        classify_wa_by_who,
-    )
-    ha = who_indicator(
-        compute_ha_z(age=age, height=height),
-        HA_DISPLAY_ORDER,
-        classify_ha_by_who,
-    )
-    wh = who_indicator(
-        compute_wh_z(weight=weight, height=height),
-        WH_DISPLAY_ORDER,
-        classify_wh_by_who,
-    )
-
-    return {
-        "wa": wa,
-        "ha": ha,
-        "wh": wh,
-        "overall": get_overall_status(wa["cls"], ha["cls"], wh["cls"]),
-        "meta": {
-            "configured_model_mode": MODEL_MODE,
-            "active_model_mode": "who_fallback",
-            "gender_models_available": sorted(GENDER_MODELS.keys()),
-            "date_of_birth_used": False,
-            "model_artifacts_loaded": False,
-        },
-        "input": {
-            "age": age,
-            "weight": weight,
-            "height": height,
-            "gender": gender_code,
-            "gender_enc": gender_enc,
-            "date_of_birth": date_of_birth.isoformat(),
-            "date_of_birth_days": date_of_birth_days,
-            "date_of_measurement": date_of_measurement.isoformat(),
-            "date_of_measurement_days": date_of_measurement_days,
-        },
-    }
-
-
 # ============================================================
 # Load models
 # ============================================================
@@ -877,31 +807,22 @@ def load_gender_models() -> Dict[str, Dict[str, Dict[str, object]]]:
     return loaded
 
 
-MODEL_LOAD_ERRORS: List[str] = []
-try:
-    COMBINED_MODELS = load_combined_models()
-except Exception as exc:
-    COMBINED_MODELS = {}
-    MODEL_LOAD_ERRORS.append(str(exc))
+COMBINED_MODELS = load_combined_models()
+GENDER_MODELS = load_gender_models()
+ACTIVE_MODEL_MODE = "gender" if MODEL_MODE == "gender" and GENDER_MODELS else "combined"
 
-GENDER_MODELS = load_gender_models() if COMBINED_MODELS else {}
-ACTIVE_MODEL_MODE = (
-    "gender"
-    if MODEL_MODE == "gender" and GENDER_MODELS
-    else "combined"
-    if COMBINED_MODELS
-    else "who_fallback"
-)
-
-MODEL_HA_PATH = COMBINED_MODELS.get("ha", {}).get("path")
-MODEL_WA_PATH = COMBINED_MODELS.get("wa", {}).get("path")
-MODEL_WH_PATH = COMBINED_MODELS.get("wh", {}).get("path")
+MODEL_HA = COMBINED_MODELS["ha"]["model"]
+MODEL_HA_PATH = COMBINED_MODELS["ha"]["path"]
+MODEL_WA = COMBINED_MODELS["wa"]["model"]
+MODEL_WA_PATH = COMBINED_MODELS["wa"]["path"]
+MODEL_WH = COMBINED_MODELS["wh"]["model"]
+MODEL_WH_PATH = COMBINED_MODELS["wh"]["path"]
 
 FEATURE_COLUMNS_BY_TARGET = {
     key: value["features"] for key, value in COMBINED_MODELS.items()
 }
 
-GENDER_ENCODER = ENCODER_INFO.get("gender_encoder") if ENCODER_INFO else None
+GENDER_ENCODER = ENCODER_INFO["gender_encoder"]
 
 
 # ============================================================
@@ -1029,13 +950,6 @@ def pick_models_for_gender(gender_code: str) -> Tuple[Dict[str, Dict[str, object
     return COMBINED_MODELS, "combined"
 
 
-def encode_gender(gender_code: str) -> int:
-    # Pakai encoder model jika tersedia; fallback menjaga deployment publik tetap hidup.
-    if GENDER_ENCODER is not None:
-        return int(GENDER_ENCODER.transform([gender_code])[0])
-    return 0 if gender_code == "F" else 1
-
-
 def health_payload() -> Dict[str, object]:
     # Payload diagnostic untuk endpoint /health.
     gender_paths = {
@@ -1046,35 +960,29 @@ def health_payload() -> Dict[str, object]:
         "status": "ok",
         "message": "GrowSmart backend aktif.",
         "models": {
-            "weight_for_age": COMBINED_MODELS.get("wa", {}).get("model_name", "WHO fallback"),
-            "height_for_age": COMBINED_MODELS.get("ha", {}).get("model_name", "WHO fallback"),
-            "weight_for_height": COMBINED_MODELS.get("wh", {}).get("model_name", "WHO fallback"),
+            "weight_for_age": COMBINED_MODELS["wa"]["model_name"],
+            "height_for_age": COMBINED_MODELS["ha"]["model_name"],
+            "weight_for_height": COMBINED_MODELS["wh"]["model_name"],
         },
         "paths": {
-            "weight_for_age": str(MODEL_WA_PATH) if MODEL_WA_PATH else None,
-            "height_for_age": str(MODEL_HA_PATH) if MODEL_HA_PATH else None,
-            "weight_for_height": str(MODEL_WH_PATH) if MODEL_WH_PATH else None,
+            "weight_for_age": str(MODEL_WA_PATH),
+            "height_for_age": str(MODEL_HA_PATH),
+            "weight_for_height": str(MODEL_WH_PATH),
         },
         "model_mode": {
             "configured": MODEL_MODE,
             "active": ACTIVE_MODEL_MODE,
             "gender_models_loaded": sorted(GENDER_MODELS.keys()),
             "gender_paths": gender_paths,
-            "artifacts_loaded": bool(COMBINED_MODELS and GENDER_ENCODER is not None),
-            "load_errors": MODEL_LOAD_ERRORS,
         },
         "features": FEATURE_COLUMNS_BY_TARGET,
-        "gender_mapping": (
-            {
-                str(label): int(value)
-                for label, value in zip(
-                    GENDER_ENCODER.classes_.tolist(),
-                    GENDER_ENCODER.transform(GENDER_ENCODER.classes_).tolist(),
-                )
-            }
-            if GENDER_ENCODER is not None
-            else {"F": 0, "M": 1}
-        ),
+        "gender_mapping": {
+            str(label): int(value)
+            for label, value in zip(
+                GENDER_ENCODER.classes_.tolist(),
+                GENDER_ENCODER.transform(GENDER_ENCODER.classes_).tolist(),
+            )
+        },
         "database": {
             "type": "mysql",
             "host": MYSQL_HOST,
@@ -1103,7 +1011,7 @@ def predict_payload(data: Dict[str, object]) -> Dict[str, object]:
         raise ValueError("age, weight, dan height harus berupa angka.")
 
     gender_code = normalize_gender(data["gender"])
-    gender_enc = encode_gender(gender_code)
+    gender_enc = int(GENDER_ENCODER.transform([gender_code])[0])
     date_of_birth = parse_date_of_birth(date_field_value)
     date_of_measurement = parse_date_of_birth(measurement_field_value) if measurement_field_value is not None else date.today()
     date_of_birth_days = date_to_epoch_days(date_of_birth)
@@ -1129,19 +1037,6 @@ def predict_payload(data: Dict[str, object]) -> Dict[str, object]:
     if dataset_match is not None:
         return dataset_lookup_payload(
             row=dataset_match,
-            age=age,
-            weight=weight,
-            height=height,
-            gender_code=gender_code,
-            gender_enc=gender_enc,
-            date_of_birth=date_of_birth,
-            date_of_birth_days=date_of_birth_days,
-            date_of_measurement=date_of_measurement,
-            date_of_measurement_days=date_of_measurement_days,
-        )
-
-    if not COMBINED_MODELS or GENDER_ENCODER is None:
-        return who_fallback_payload(
             age=age,
             weight=weight,
             height=height,
@@ -1346,15 +1241,10 @@ class GrowSmartHandler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     # Jalankan backend langsung dari terminal.
     try:
-        if COMBINED_MODELS and GENDER_ENCODER is not None:
-            print("Model berhasil dimuat dari:")
-            print(f"- HA: {MODEL_HA_PATH}")
-            print(f"- WA: {MODEL_WA_PATH}")
-            print(f"- WH: {MODEL_WH_PATH}")
-        else:
-            print("File model/encoder tidak lengkap. Backend memakai mode WHO fallback.")
-            for error in MODEL_LOAD_ERRORS:
-                print(f"- {error}")
+        print("Model berhasil dimuat dari:")
+        print(f"- HA: {MODEL_HA_PATH}")
+        print(f"- WA: {MODEL_WA_PATH}")
+        print(f"- WH: {MODEL_WH_PATH}")
         print(f"Mode model aktif: {ACTIVE_MODEL_MODE} (configured: {MODEL_MODE})")
         if GENDER_MODELS:
             print(f"Model gender tersedia untuk: {', '.join(sorted(GENDER_MODELS.keys()))}")
