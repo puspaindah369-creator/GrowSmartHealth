@@ -2,12 +2,12 @@
 // GrowSmart Health - API Client
 // ============================================================
 
-// IP_LAPTOP adalah alamat IP laptop/komputer yang menjalankan backend.
-const IP_LAPTOP = '10.10.51.44';
+// // IP_LAPTOP adalah alamat IP laptop/komputer yang menjalankan backend.
+// const IP_LAPTOP = '10.10.51.44';
 // PORT adalah port backend, harus sama dengan port server Python di backend/app.py.
 const PORT = 5000;
 // Base URL backend Flask/API yang dipakai aplikasi Expo.
-export const BASE_URL = `http://${IP_LAPTOP}:${PORT}`;
+export const BASE_URL = 'https://growsmarthealth-production.up.railway.app';
 // API_URL adalah endpoint khusus untuk proses prediksi status gizi.
 const API_URL = `${BASE_URL}/predict`;
 
