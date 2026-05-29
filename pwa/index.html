@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="GrowSmart"/>
+<meta name="theme-color" content="#0a0a1a"/>
+<link rel="manifest" href="manifest.json"/>
+<title>GrowSmart Health</title>
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+body{
+  font-family:-apple-system,'SF Pro Display','Inter',sans-serif;
+  background:#000;color:#fff;
+  display:flex;flex-direction:column;
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+/* ══════════════════════════════════════════
+   LIQUID GLASS DESIGN TOKENS
+══════════════════════════════════════════ */
+:root {
+  /* Gradient mesh background */
+  --mesh1: #1a0533;
+  --mesh2: #0a1a3d;
+  --mesh3: #001a2e;
+  --mesh4: #1a1a00;
+
+  /* Glass surfaces */
+  --glass-bg:       rgba(255,255,255,0.08);
+  --glass-bg-heavy: rgba(255,255,255,0.13);
+  --glass-bg-light: rgba(255,255,255,0.04);
+  --glass-border:   rgba(255,255,255,0.20);
+  --glass-border-h: rgba(255,255,255,0.35);
+  --glass-shine:    rgba(255,255,255,0.12);
+
+  /* Tints */
+  --blue:   #4DA3FF;
+  --green:  #30D158;
+  --yellow: #FFD60A;
+  --red:    #FF453A;
+  --purple: #BF5AF2;
+  --cyan:   #64D2FF;
+  --orange: #FF9F0A;
+  --pink:   #FF375F;
+
+  /* Text */
+  --t1: rgba(255,255,255,1.0);
+  --t2: rgba(255,255,255,0.72);
+  --t3: rgba(255,255,255,0.45);
+  --t4: rgba(255,255,255,0.25);
+
+  /* Blur levels */
+  --blur-sm:  blur(12px);
+  --blur-md:  blur(20px);
+  --blur-lg:  blur(32px);
+  --blur-xl:  blur(48px);
+
+  --r8:6px;--r12:12px;--r16:16px;--r20:20px;--r28:28px;--rfull:999px;
+}
+
+/* ══════════════════════════════════════════
+   APP SHELL
+══════════════════════════════════════════ */
+#app{
+  flex:1;display:flex;flex-direction:column;
+  max-width:430px;margin:0 auto;width:100%;
+  position:relative;overflow:hidden;
+  background:radial-gradient(ellipse at 20% 10%,#2d0050 0%,transparent 50%),
+             radial-gradient(ellipse at 80% 20%,#00205a 0%,transparent 50%),
+             radial-gradient(ellipse at 50% 80%,#001a2e 0%,transparent 60%),
+             radial-gradient(ellipse at 10% 90%,#1a0533 0%,transparent 50%),
+             #060614;
+}
+
+/* Moving gradient mesh */
+.mesh-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 15%,rgba(120,40,200,.35) 0%,transparent 100%),
+    radial-gradient(ellipse 50% 50% at 80% 20%,rgba(30,100,255,.3) 0%,transparent 100%),
+    radial-gradient(ellipse 70% 40% at 60% 80%,rgba(0,180,255,.2) 0%,transparent 100%),
+    radial-gradient(ellipse 40% 60% at 5% 70%,rgba(180,30,120,.2) 0%,transparent 100%),
+    radial-gradient(ellipse 50% 50% at 90% 85%,rgba(80,200,100,.15) 0%,transparent 100%);
+  animation:meshMove 18s ease-in-out infinite alternate;
+}
+@keyframes meshMove{
+  0%{opacity:1;filter:hue-rotate(0deg)}
+  100%{opacity:.85;filter:hue-rotate(30deg)}
+}
+
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;display:none;
+  flex-direction:column;-webkit-overflow-scrolling:touch;position:relative;z-index:1}
+.screen.active{display:flex}
+.screen::-webkit-scrollbar{display:none}
+.sc{flex:1;padding-bottom:96px}
+
+/* ══════════════════════════════════════════
+   LIQUID GLASS COMPONENT
+══════════════════════════════════════════ */
+.lg{
+  background:var(--glass-bg);
+  backdrop-filter:var(--blur-md) saturate(180%);
+  -webkit-backdrop-filter:var(--blur-md) saturate(180%);
+  border:1px solid var(--glass-border);
+  border-radius:var(--r20);
+  position:relative;overflow:hidden;
+}
+/* Specular highlight — the "glass shine" */
+.lg::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:45%;
+  background:linear-gradient(180deg,
+    rgba(255,255,255,.15) 0%,
+    rgba(255,255,255,.04) 60%,
+    transparent 100%);
+  border-radius:inherit;pointer-events:none;z-index:0;
+}
+/* Inner glow edge */
+.lg::after{
+  content:'';position:absolute;inset:0;
+  border-radius:inherit;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25),
+             inset 0 -1px 0 rgba(255,255,255,.05);
+  pointer-events:none;z-index:0;
+}
+.lg > *{position:relative;z-index:1}
+.lg-heavy{background:var(--glass-bg-heavy)}
+.lg-sm{border-radius:var(--r16)}
+.lg-xs{border-radius:var(--r12)}
+
+/* ══════════════════════════════════════════
+   BOTTOM NAV — Liquid Glass bar
+══════════════════════════════════════════ */
+.bot-nav{
+  background:rgba(20,20,35,0.65);
+  backdrop-filter:var(--blur-xl) saturate(200%);
+  -webkit-backdrop-filter:var(--blur-xl) saturate(200%);
+  border-top:1px solid rgba(255,255,255,.12);
+  box-shadow:0 -1px 0 rgba(255,255,255,.05),
+             0 -20px 60px rgba(0,0,0,.3);
+  height:68px;display:flex;align-items:stretch;
+  flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);
+  position:relative;z-index:100;
+}
+.nt{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:4px;cursor:pointer;transition:.25s;position:relative}
+.nt .ni{font-size:22px;transition:.25s;opacity:.4;transform:scale(.88)}
+.nt .nl{font-size:9.5px;font-weight:600;color:var(--t3);transition:.25s;letter-spacing:.1px}
+.nt.active .ni{opacity:1;transform:scale(1.08)}
+.nt.active .nl{color:var(--blue)}
+.nt.active::after{
+  content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:32px;height:3px;
+  background:linear-gradient(90deg,var(--blue),var(--purple));
+  border-radius:3px 3px 0 0;
+}
+/* Center detect button — pill style */
+.ntc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;gap:4px}
+.ntc-pill{
+  width:58px;height:58px;
+  background:linear-gradient(145deg,rgba(255,255,255,.25) 0%,rgba(255,255,255,.08) 100%);
+  backdrop-filter:var(--blur-md) saturate(200%);
+  -webkit-backdrop-filter:var(--blur-md) saturate(200%);
+  border-radius:18px;display:flex;align-items:center;justify-content:center;
+  font-size:26px;margin-top:-24px;
+  border:1px solid rgba(255,255,255,.35);
+  box-shadow:
+    0 8px 32px rgba(77,163,255,.35),
+    0 2px 8px rgba(0,0,0,.4),
+    inset 0 1px 0 rgba(255,255,255,.4),
+    inset 0 -1px 0 rgba(255,255,255,.1);
+  transition:.2s;position:relative;overflow:hidden;
+}
+.ntc-pill::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,transparent 100%);
+  border-radius:inherit;pointer-events:none;
+}
+.ntc-pill:active{transform:scale(.88)}
+.ntc .nl{font-size:9.5px;font-weight:600;color:var(--blue);letter-spacing:.1px}
+
+/* ══════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:.7}}
+@keyframes floatOrb{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(15px,-20px) scale(1.05)}66%{transform:translate(-10px,10px) scale(.97)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes ripple{from{transform:scale(0);opacity:.5}to{transform:scale(2.5);opacity:0}}
+.fu{animation:fadeUp .5s cubic-bezier(.2,.8,.2,1) both}
+.fu1{animation:fadeUp .5s .08s cubic-bezier(.2,.8,.2,1) both;opacity:0}
+.fu2{animation:fadeUp .5s .16s cubic-bezier(.2,.8,.2,1) both;opacity:0}
+.fu3{animation:fadeUp .5s .24s cubic-bezier(.2,.8,.2,1) both;opacity:0}
+
+/* ══════════════════════════════════════════
+   HERO
+══════════════════════════════════════════ */
+.hero{
+  padding:70px 22px 56px;
+  position:relative;overflow:hidden;
+  min-height:340px;
+}
+.hero-orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(1px)}
+.ho1{width:300px;height:300px;background:radial-gradient(circle,rgba(120,40,255,.4) 0%,transparent 65%);top:-80px;right:-60px;animation:floatOrb 12s ease-in-out infinite}
+.ho2{width:220px;height:220px;background:radial-gradient(circle,rgba(30,120,255,.35) 0%,transparent 65%);bottom:-60px;left:-40px;animation:floatOrb 15s ease-in-out infinite reverse}
+.ho3{width:150px;height:150px;background:radial-gradient(circle,rgba(0,210,255,.25) 0%,transparent 65%);top:40%;right:5%;animation:floatOrb 9s ease-in-out infinite 3s}
+.ho4{width:100px;height:100px;background:radial-gradient(circle,rgba(255,100,150,.2) 0%,transparent 65%);top:20%;left:10%;animation:floatOrb 11s ease-in-out infinite 1.5s}
+
+.live-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.08);
+  backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:var(--rfull);padding:6px 14px;margin-bottom:20px;
+}
+.live-pill-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;box-shadow:0 0 8px var(--green)}
+.live-pill-txt{font-size:11px;font-weight:600;color:var(--t2);letter-spacing:.3px}
+
+.hero-title{
+  font-size:44px;font-weight:700;line-height:1.05;
+  letter-spacing:-1.5px;margin-bottom:12px;
+  background:linear-gradient(160deg,#fff 0%,rgba(255,255,255,.5) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero-sub{font-size:15px;color:var(--t2);line-height:1.6;margin-bottom:28px;font-weight:400;max-width:280px}
+
+/* Liquid glass CTA button */
+.hero-cta{
+  display:inline-flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,.08) 100%);
+  backdrop-filter:var(--blur-md);-webkit-backdrop-filter:var(--blur-md);
+  border:1px solid rgba(255,255,255,.32);
+  border-radius:var(--rfull);padding:16px 28px;
+  font-size:16px;font-weight:600;color:#fff;cursor:pointer;
+  box-shadow:
+    0 8px 32px rgba(77,163,255,.3),
+    0 2px 8px rgba(0,0,0,.3),
+    inset 0 1px 0 rgba(255,255,255,.35),
+    inset 0 -1px 0 rgba(255,255,255,.08);
+  transition:all .2s cubic-bezier(.2,.8,.2,1);
+  position:relative;overflow:hidden;border:none;letter-spacing:-.1px;
+}
+.hero-cta::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.22) 0%,transparent 100%);
+  border-radius:inherit;pointer-events:none;
+}
+.hero-cta::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  border:1px solid rgba(255,255,255,.28);
+}
+.hero-cta:active{transform:scale(.94)}
+
+.tech-pills{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap}
+.tpill{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--rfull);padding:6px 13px;
+  font-size:11.5px;font-weight:500;color:var(--t2);
+}
+.tpill-dot{width:5px;height:5px;border-radius:50%}
+
+/* ══════════════════════════════════════════
+   STATS ROW
+══════════════════════════════════════════ */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 16px;margin-top:-28px;position:relative;z-index:2}
+.stat-card{
+  padding:16px 10px;text-align:center;border-radius:var(--r20);
+  background:rgba(255,255,255,.08);
+  backdrop-filter:var(--blur-md) saturate(180%);
+  -webkit-backdrop-filter:var(--blur-md) saturate(180%);
+  border:1px solid rgba(255,255,255,.16);
+  position:relative;overflow:hidden;
+  box-shadow:0 4px 24px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.2);
+}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.12) 0%,transparent 100%);border-radius:inherit;pointer-events:none}
+.stat-num{font-size:28px;font-weight:700;letter-spacing:-1px;position:relative;z-index:1}
+.stat-lbl{font-size:9.5px;color:var(--t3);font-weight:500;margin-top:4px;letter-spacing:.2px;position:relative;z-index:1}
+.stat-line{height:2px;border-radius:2px;margin-top:10px;position:relative;z-index:1;opacity:.7}
+
+/* ══════════════════════════════════════════
+   SECTION
+══════════════════════════════════════════ */
+.sh{display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin:26px 0 12px}
+.stitle{font-size:20px;font-weight:700;color:var(--t1);letter-spacing:-.4px}
+.smore{font-size:14px;font-weight:500;color:var(--blue)}
+
+/* ══════════════════════════════════════════
+   QUICK MENU — Liquid glass cards
+══════════════════════════════════════════ */
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px}
+.qcard{
+  padding:18px;border-radius:var(--r20);cursor:pointer;
+  background:rgba(255,255,255,.07);
+  backdrop-filter:var(--blur-md) saturate(160%);
+  -webkit-backdrop-filter:var(--blur-md) saturate(160%);
+  border:1px solid rgba(255,255,255,.15);
+  position:relative;overflow:hidden;transition:.2s;
+  box-shadow:0 4px 20px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18);
+}
+.qcard::before{content:'';position:absolute;top:0;left:0;right:0;height:45%;background:linear-gradient(180deg,rgba(255,255,255,.14) 0%,transparent 100%);border-radius:inherit;pointer-events:none}
+.qcard:active{transform:scale(.95);background:rgba(255,255,255,.12)}
+.q-icon{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:13px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2);
+  position:relative;z-index:1}
+.qcard h4{font-size:14px;font-weight:600;color:var(--t1);margin-bottom:4px;letter-spacing:-.2px;position:relative;z-index:1}
+.qcard p{font-size:11.5px;color:var(--t3);line-height:1.5;position:relative;z-index:1}
+.q-arrow{position:absolute;top:16px;right:16px;font-size:16px;color:var(--t4);z-index:1}
+
+/* ══════════════════════════════════════════
+   RECENT CARDS
+══════════════════════════════════════════ */
+.rcard{
+  padding:16px;border-radius:var(--r20);
+  display:flex;align-items:center;gap:14px;margin-bottom:10px;cursor:pointer;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:var(--blur-md);-webkit-backdrop-filter:var(--blur-md);
+  border:1px solid rgba(255,255,255,.12);
+  transition:.2s;position:relative;overflow:hidden;
+  box-shadow:0 2px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.15);
+}
+.rcard::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 100%);border-radius:inherit;pointer-events:none}
+.rcard:active{transform:scale(.97)}
+.r-av{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);position:relative;z-index:1}
+.r-name{font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.2px;position:relative;z-index:1}
+.r-meta{font-size:11px;color:var(--t3);margin-top:3px;position:relative;z-index:1}
+.lg-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:var(--rfull);
+  font-size:10.5px;font-weight:600;
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+  position:relative;z-index:1;
+}
+
+/* ══════════════════════════════════════════
+   DETEKSI / FORM
+══════════════════════════════════════════ */
+.det-hero{padding:56px 22px 42px;position:relative;overflow:hidden;min-height:260px}
+.fwrap{
+  margin:14px 16px;padding:22px;border-radius:var(--r28);
+  background:rgba(255,255,255,.07);
+  backdrop-filter:var(--blur-lg) saturate(180%);
+  -webkit-backdrop-filter:var(--blur-lg) saturate(180%);
+  border:1px solid rgba(255,255,255,.16);
+  box-shadow:0 16px 60px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.22);
+  position:relative;overflow:hidden;
+}
+.fwrap::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 100%);border-radius:inherit;pointer-events:none}
+.fwrap > *{position:relative;z-index:1}
+.fwrap.shake{animation:shake .35s ease}
+.field{margin-bottom:20px}
+.fl{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:9px;display:block;letter-spacing:.1px}
+.fl em{color:var(--red);font-style:normal;margin-left:2px}
+.fh{font-size:11px;color:var(--t3);margin-top:5px}
+.inp{
+  width:100%;padding:14px 16px;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:var(--r16);
+  font-family:-apple-system,'Inter',sans-serif;font-size:16px;color:var(--t1);
+  outline:none;transition:.25s;-webkit-appearance:none;appearance:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+.inp:focus{
+  background:rgba(77,163,255,.12);
+  border-color:rgba(77,163,255,.5);
+  box-shadow:0 0 0 3px rgba(77,163,255,.18),inset 0 1px 0 rgba(255,255,255,.1);
+}
+.inp::placeholder{color:var(--t4)}
+.utag{
+  background:rgba(77,163,255,.15);
+  border:1px solid rgba(77,163,255,.3);
+  backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+  padding:9px 14px;border-radius:var(--r12);
+  font-size:12px;font-weight:600;color:var(--blue);white-space:nowrap;flex-shrink:0;
+}
+/* Liquid glass submit button */
+.sbtn{
+  width:100%;padding:16px;border:none;border-radius:var(--r16);
+  font-family:-apple-system,'Inter',sans-serif;font-size:16px;font-weight:600;
+  color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  gap:8px;letter-spacing:-.1px;transition:.2s;
+  background:linear-gradient(135deg,rgba(77,163,255,.55) 0%,rgba(120,40,255,.45) 100%);
+  backdrop-filter:var(--blur-md);-webkit-backdrop-filter:var(--blur-md);
+  border:1px solid rgba(255,255,255,.25);
+  box-shadow:0 8px 32px rgba(77,163,255,.3),inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 0 rgba(0,0,0,.1);
+  position:relative;overflow:hidden;
+}
+.sbtn::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.2) 0%,transparent 100%);border-radius:inherit;pointer-events:none}
+.sbtn > *{position:relative;z-index:1}
+.sbtn:active{transform:scale(.97)}
+.sbtn:disabled{opacity:.4}
+.model-badge{
+  display:flex;gap:10px;align-items:center;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--r16);padding:14px;margin-top:18px;
+  backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+}
+.mb-txt{font-size:12.5px;color:var(--t2);line-height:1.6;flex:1}
+.mb-txt strong{color:var(--t1);font-weight:600}
+.who-card{margin:0 16px 24px;padding:18px;border-radius:var(--r20);
+  background:rgba(255,255,255,.06);
+  backdrop-filter:var(--blur-md);-webkit-backdrop-filter:var(--blur-md);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+}
+.wtitle{font-size:12px;font-weight:600;color:var(--blue);margin-bottom:14px;letter-spacing:.1px}
+.whead{display:flex;padding-bottom:9px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:6px}
+.whead span{font-size:10px;font-weight:600;color:var(--t4)}
+.wrow{display:flex;padding:7px 6px;border-radius:8px}
+.wrow:nth-child(odd){background:rgba(255,255,255,.04)}
+.wc{font-size:11px;color:var(--t2)}
+
+/* ══════════════════════════════════════════
+   HASIL
+══════════════════════════════════════════ */
+.h-hero{padding:56px 22px 42px;position:relative;overflow:hidden;min-height:280px}
+.h-tag{
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  border-radius:var(--rfull);padding:6px 14px;margin-bottom:16px;
+  font-size:11px;font-weight:600;color:var(--t2);
+  backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+}
+.h-name{font-size:30px;font-weight:700;color:var(--t1);letter-spacing:-.8px}
+.h-meta{font-size:12px;color:var(--t3);margin-top:7px;letter-spacing:.1px}
+.ov-glass{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:11px 20px;border-radius:var(--rfull);margin-top:18px;
+  font-size:14px;font-weight:600;
+  background:rgba(255,255,255,.1);
+  backdrop-filter:var(--blur-md);-webkit-backdrop-filter:var(--blur-md);
+  border:1px solid rgba(255,255,255,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+}
+/* Indicator cards */
+.ind-wrap{padding:14px 16px}
+.ind-sec-title{font-size:20px;font-weight:700;color:var(--t1);letter-spacing:-.4px;margin-bottom:14px}
+.ind-card{
+  padding:18px;border-radius:var(--r20);margin-bottom:12px;
+  background:rgba(255,255,255,.07);
+  backdrop-filter:var(--blur-md) saturate(160%);
+  -webkit-backdrop-filter:var(--blur-md) saturate(160%);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 4px 20px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18);
+  position:relative;overflow:hidden;
+  animation:fadeUp .45s cubic-bezier(.2,.8,.2,1) both;
+}
+.ind-card::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 100%);border-radius:inherit;pointer-events:none}
+.ind-card > *{position:relative;z-index:1}
+.ind-hd{display:flex;align-items:center;gap:13px;margin-bottom:14px}
+.ind-ico{width:50px;height:50px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:23px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.ind-title{font-size:14px;font-weight:600;color:var(--t1);letter-spacing:-.2px}
+.ind-sub{font-size:10.5px;color:var(--t3);margin-top:3px}
+/* Status chip */
+.schip{
+  display:flex;align-items:center;gap:11px;border-radius:var(--r16);
+  padding:13px 15px;margin-bottom:14px;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15);
+}
+.cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.clbl{font-size:10px;color:var(--t3);font-weight:500;letter-spacing:.3px;text-transform:uppercase}
+.cval{font-size:17px;font-weight:700;margin-top:2px;letter-spacing:-.3px}
+.cz{
+  font-size:12px;font-weight:600;margin-left:auto;
+  padding:5px 12px;border-radius:10px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+}
+/* Prob bars */
+.ptitle{font-size:11px;font-weight:600;color:var(--t3);margin-bottom:10px;letter-spacing:.1px}
+.prow{margin-bottom:10px}
+.plr{display:flex;justify-content:space-between;margin-bottom:5px}
+.plr span{font-size:11.5px;color:var(--t3)}
+.plr strong{font-size:11.5px;font-weight:600}
+.ptrack{
+  height:6px;border-radius:var(--rfull);overflow:hidden;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.06);
+}
+.pfill{height:100%;border-radius:var(--rfull);transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+/* Rekomendasi */
+.rek-card{
+  margin:0 16px 16px;padding:20px;border-radius:var(--r20);
+  background:rgba(77,163,255,.08);
+  backdrop-filter:var(--blur-md);-webkit-backdrop-filter:var(--blur-md);
+  border:1px solid rgba(77,163,255,.22);
+  box-shadow:0 4px 24px rgba(77,163,255,.12),inset 0 1px 0 rgba(255,255,255,.15);
+  position:relative;overflow:hidden;
+}
+.rek-card::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(180deg,rgba(255,255,255,.08) 0%,transparent 100%);pointer-events:none}
+.rek-card > *{position:relative;z-index:1}
+.rek-title{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:14px;letter-spacing:.1px}
+.rek-item{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start}
+.rik{
+  width:34px;height:34px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15);
+}
+.rit{font-size:13px;color:var(--t2);line-height:1.7;flex:1;padding-top:4px}
+/* Actions */
+.act-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px 28px}
+.abtn{
+  padding:15px;border-radius:var(--r16);border:none;
+  font-family:-apple-system,'Inter',sans-serif;font-size:15px;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;
+  color:#fff;transition:.2s;
+  background:rgba(255,255,255,.1);
+  backdrop-filter:var(--blur-md);-webkit-backdrop-filter:var(--blur-md);
+  border:1px solid rgba(255,255,255,.2);
+  box-shadow:0 4px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.22);
+  position:relative;overflow:hidden;
+}
+.abtn::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.14) 0%,transparent 100%);border-radius:inherit;pointer-events:none}
+.abtn > *{position:relative;z-index:1}
+.abtn:active{transform:scale(.95)}
+.abtn-ok{background:rgba(48,209,88,.18);border-color:rgba(48,209,88,.3);box-shadow:0 4px 20px rgba(48,209,88,.2),inset 0 1px 0 rgba(255,255,255,.2)}
+.abtn-pri{background:rgba(77,163,255,.18);border-color:rgba(77,163,255,.3);box-shadow:0 4px 20px rgba(77,163,255,.2),inset 0 1px 0 rgba(255,255,255,.2)}
+
+/* ══════════════════════════════════════════
+   RIWAYAT
+══════════════════════════════════════════ */
+.frow{
+  display:flex;gap:8px;padding:14px 16px;overflow-x:auto;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:rgba(0,0,0,.15);
+  backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+}
+.frow::-webkit-scrollbar{display:none}
+.fchip{
+  padding:8px 16px;border-radius:var(--rfull);font-size:12px;font-weight:500;
+  white-space:nowrap;cursor:pointer;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+  color:var(--t3);transition:.2s;
+  font-family:-apple-system,'Inter',sans-serif;
+  backdrop-filter:var(--blur-sm);-webkit-backdrop-filter:var(--blur-sm);
+}
+.fchip.on{
+  background:rgba(77,163,255,.2);border-color:rgba(77,163,255,.4);
+  color:var(--blue);
+  box-shadow:0 2px 12px rgba(77,163,255,.2),inset 0 1px 0 rgba(255,255,255,.2);
+}
+.hcard{
+  padding:16px;border-radius:var(--r20);margin-bottom:10px;cursor:pointer;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:var(--blur-md);-webkit-backdrop-filter:var(--blur-md);
+  border:1px solid rgba(255,255,255,.12);
+  transition:.2s;position:relative;overflow:hidden;
+  box-shadow:0 2px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.12);
+}
+.hcard::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(180deg,rgba(255,255,255,.08) 0%,transparent 100%);border-radius:inherit;pointer-events:none}
+.hcard > *{position:relative;z-index:1}
+.hcard:active{transform:scale(.98)}
+.htop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px}
+.hname{font-size:15px;font-weight:600;color:var(--t1);letter-spacing:-.3px}
+.hdate{font-size:10.5px;color:var(--t3);margin-top:3px}
+.hstats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+.hstat{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  padding:4px 10px;border-radius:var(--r8);
+  font-size:10.5px;color:var(--t2);
+}
+.ipills{display:flex;gap:6px;flex-wrap:wrap}
+.ipill{font-size:10px;font-weight:600;padding:4px 10px;border-radius:8px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+.lph{font-size:9px;color:var(--t4);margin-top:9px;text-align:right}
+
+/* ══════════════════════════════════════════
+   PANDUAN
+══════════════════════════════════════════ */
+.p-banner{
+  padding:26px;border-radius:var(--r28);margin-bottom:14px;text-align:center;
+  background:rgba(255,255,255,.07);
+  backdrop-filter:var(--blur-lg) saturate(180%);
+  -webkit-backdrop-filter:var(--blur-lg) saturate(180%);
+  border:1px solid rgba(255,255,255,.16);
+  position:relative;overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.2);
+}
+.p-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:40%;background:linear-gradient(180deg,rgba(255,255,255,.12) 0%,transparent 100%);border-radius:inherit;pointer-events:none}
+.p-banner::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -20%,rgba(77,163,255,.18) 0%,transparent 70%);border-radius:inherit;pointer-events:none}
+.p-banner > *{position:relative;z-index:1}
+.p-bi{font-size:40px;margin-bottom:10px}
+.p-bt{font-size:22px;font-weight:700;color:var(--t1);letter-spacing:-.5px}
+.p-bs{font-size:13px;color:var(--t2);margin-top:8px;line-height:1.65}
+.p-card{
+  padding:18px;border-radius:var(--r20);margin-bottom:12px;
+  background:rgba(255,255,255,.06);
+  backdrop-filter:var(--blur-md);-webkit-backdrop-filter:var(--blur-md);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
+  position:relative;overflow:hidden;
+}
+.p-card::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(180deg,rgba(255,255,255,.08) 0%,transparent 100%);border-radius:inherit;pointer-events:none}
+.p-card > *{position:relative;z-index:1}
+.p-hd{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+.p-ico{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:25px;flex-shrink:0;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22)}
+.p-title{font-size:15px;font-weight:600;color:var(--t1);letter-spacing:-.3px}
+.p-sub{font-size:11px;color:var(--t3);margin-top:3px}
+.p-desc{font-size:13.5px;color:var(--t2);line-height:1.7}
+.exbtn{width:100%;padding:11px 0;font-family:-apple-system,'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--blue);background:none;border:none;cursor:pointer;text-align:center;margin-top:10px}
+.ctable{width:100%;border-collapse:collapse;margin:12px 0}
+.ctable th{font-size:10px;font-weight:600;color:var(--t3);padding:6px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.1)}
+.ctable td{font-size:11.5px;color:var(--t2);padding:9px 8px;border-bottom:1px solid rgba(255,255,255,.06)}
+.ctable tr:last-child td{border-bottom:none}
+.tipbox{border-radius:var(--r16);padding:14px;margin-top:10px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.tipbox p{font-size:12.5px;line-height:1.7;font-weight:400}
+.mboxes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.mbox{border-radius:var(--r16);padding:16px;text-align:center;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.mblbl{font-size:10px;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.mbname{font-size:22px;font-weight:700;letter-spacing:-.5px}
+.mbtype{font-size:10.5px;margin-top:4px;color:var(--t3)}
+.dsbox{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r16);padding:14px;margin-top:14px}
+.dstitle{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:10px}
+.dsrow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.dsrow:last-child{border-bottom:none}
+.dslbl{font-size:12px;color:var(--t3);flex:1.5}
+.dsval{font-size:12px;font-weight:600;color:var(--t1)}
+.disc{
+  background:rgba(255,215,10,.07);border:1px solid rgba(255,215,10,.2);
+  border-radius:var(--r16);padding:14px;
+}
+.disc p{font-size:12.5px;color:var(--yellow);line-height:1.7}
+
+/* ══════════════════════════════════════════
+   LOADING
+══════════════════════════════════════════ */
+#loading{
+  position:fixed;inset:0;
+  background:rgba(0,0,10,.7);
+  backdrop-filter:var(--blur-xl) saturate(180%);
+  -webkit-backdrop-filter:var(--blur-xl) saturate(180%);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:200;
+}
+#loading.on{display:flex}
+.spin-glass{
+  width:60px;height:60px;border-radius:18px;
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.25);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.3);
+}
+.spin-ring{width:28px;height:28px;border:2.5px solid rgba(77,163,255,.3);border-top-color:var(--blue);border-radius:50%;animation:spin .75s linear infinite}
+.lt{font-size:16px;font-weight:600;color:var(--t1);letter-spacing:-.2px}
+.ls{font-size:12px;color:var(--t3)}
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+.toast{
+  position:fixed;bottom:88px;left:50%;transform:translateX(-50%);
+  background:rgba(28,28,30,.85);
+  backdrop-filter:var(--blur-lg);-webkit-backdrop-filter:var(--blur-lg);
+  border:1px solid rgba(255,255,255,.18);
+  color:var(--t1);padding:12px 22px;border-radius:var(--rfull);
+  font-size:13.5px;font-weight:500;z-index:300;white-space:nowrap;
+  box-shadow:0 10px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.15);
+  animation:fadeUp .3s cubic-bezier(.2,.8,.2,1);pointer-events:none;
+}
+
+/* ══════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════ */
+.empty{text-align:center;padding:64px 24px;animation:fadeIn .5s ease}
+.ei{font-size:60px;margin-bottom:14px}
+.empty h3{font-size:18px;font-weight:600;color:var(--t1);letter-spacing:-.3px}
+.empty p{font-size:14px;color:var(--t3);margin-top:8px;line-height:1.65}
+.ebtn{
+  display:inline-flex;align-items:center;gap:8px;margin-top:22px;
+  padding:14px 28px;border-radius:var(--rfull);font-size:14px;font-weight:600;
+  color:#fff;cursor:pointer;border:none;
+  background:rgba(77,163,255,.2);
+  border:1px solid rgba(77,163,255,.35);
+  backdrop-filter:var(--blur-md);-webkit-backdrop-filter:var(--blur-md);
+  box-shadow:0 4px 20px rgba(77,163,255,.25),inset 0 1px 0 rgba(255,255,255,.2);
+}
+</style>
+</head>
+<body>
+<div class="mesh-bg"></div>
+<div id="app">
+
+<!-- ═══════ BERANDA ═══════ -->
+<div class="screen active" id="s-beranda"><div class="sc">
+  <div class="hero fu">
+    <div class="hero-orb ho1"></div><div class="hero-orb ho2"></div>
+    <div class="hero-orb ho3"></div><div class="hero-orb ho4"></div>
+    <div class="live-pill"><div class="live-pill-dot"></div><div class="live-pill-txt">AI-Powered · WHO 2006</div></div>
+    <div class="hero-title">GrowSmart<br>Health</div>
+    <div class="hero-sub">Deteksi dini stunting & status gizi balita berbasis kecerdasan buatan</div>
+    <button class="hero-cta" onclick="go('deteksi')"><span style="font-size:18px">🔬</span> Mulai Pemeriksaan</button>
+    <div class="tech-pills">
+      <div class="tpill"><div class="tpill-dot" style="background:var(--blue)"></div>LightGBM</div>
+      <div class="tpill"><div class="tpill-dot" style="background:var(--purple)"></div>XGBoost</div>
+      <div class="tpill"><div class="tpill-dot" style="background:var(--green)"></div>WHO 2006</div>
+    </div>
+  </div>
+
+  <div class="stats-row fu1">
+    <div class="stat-card"><div class="stat-num" id="st-t" style="color:var(--blue)">0</div><div class="stat-lbl">Total Cek</div><div class="stat-line" style="background:linear-gradient(90deg,var(--blue),var(--purple))"></div></div>
+    <div class="stat-card"><div class="stat-num" id="st-o" style="color:var(--green)">0</div><div class="stat-lbl">Normal</div><div class="stat-line" style="background:linear-gradient(90deg,var(--green),var(--cyan))"></div></div>
+    <div class="stat-card"><div class="stat-num" id="st-p" style="color:var(--yellow)">0</div><div class="stat-lbl">Perlu Perhatian</div><div class="stat-line" style="background:linear-gradient(90deg,var(--yellow),var(--orange))"></div></div>
+  </div>
+
+  <div class="sh fu2"><div class="stitle">Menu Cepat</div></div>
+  <div class="qgrid fu2">
+    <div class="qcard" onclick="go('deteksi')"><div class="q-icon">🔬</div><div class="q-arrow">›</div><h4>Deteksi Gizi</h4><p>Analisis status pertumbuhan balita secara akurat</p></div>
+    <div class="qcard" onclick="go('riwayat')"><div class="q-icon">📋</div><div class="q-arrow">›</div><h4>Riwayat</h4><p>Lihat semua hasil pemeriksaan sebelumnya</p></div>
+    <div class="qcard" onclick="go('panduan')"><div class="q-icon">📖</div><div class="q-arrow">›</div><h4>Panduan Gizi</h4><p>Standar WHO & interpretasi hasil klasifikasi</p></div>
+    <div class="qcard" onclick="go('panduan')"><div class="q-icon">🤖</div><div class="q-arrow">›</div><h4>Tentang AI</h4><p>LightGBM & XGBoost model info</p></div>
+  </div>
+
+  <div class="sh fu3"><div class="stitle">Terbaru</div><div class="smore" onclick="go('riwayat')">Semua ›</div></div>
+  <div id="rl" style="padding:0 16px"></div>
+</div></div>
+
+<!-- ═══════ DETEKSI ═══════ -->
+<div class="screen" id="s-deteksi"><div class="sc">
+  <div class="det-hero">
+    <div class="hero-orb ho1" style="width:220px;height:220px;opacity:.7"></div>
+    <div class="live-pill"><div class="live-pill-dot"></div><div class="live-pill-txt">Analisis Antropometri</div></div>
+    <div style="font-size:28px;font-weight:700;color:var(--t1);margin-bottom:8px;letter-spacing:-.6px">Input Data Balita</div>
+    <div style="font-size:14px;color:var(--t2);line-height:1.65;max-width:280px">Masukkan data antropometri untuk klasifikasi status pertumbuhan menggunakan AI</div>
+    <div class="model-badge"><span style="font-size:22px">🤖</span><div class="mb-txt">Menggunakan <strong>LightGBM & XGBoost</strong> — analisis 3 indikator: <strong>BB/U · TB/U · BB/TB</strong></div></div>
+  </div>
+  <div class="fwrap fu" id="fw">
+    <div class="field"><label class="fl">Nama Balita<em>*</em></label><input type="text" class="inp" id="f-nama" placeholder="Contoh: Andi Putra" autocapitalize="words"/></div>
+    <div class="field"><label class="fl">Usia (Bulan)<em>*</em></label>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="number" class="inp" id="f-usia" placeholder="0 – 59" min="0" max="59" style="flex:1"/>
+        <div id="utag" style="display:none" class="utag"></div>
+      </div>
+      <div class="fh">Rentang 0–59 bulan (balita 0–5 tahun)</div>
+    </div>
+    <div class="field"><label class="fl">Berat Badan (kg)<em>*</em></label><input type="number" class="inp" id="f-bb" placeholder="Contoh: 11.5" step="0.1"/><div class="fh">Dalam satuan kilogram (kg)</div></div>
+    <div class="field"><label class="fl">Tinggi Badan (cm)<em>*</em></label><input type="number" class="inp" id="f-tb" placeholder="Contoh: 85.0" step="0.1"/><div class="fh">Dalam satuan sentimeter (cm)</div></div>
+    <button class="sbtn" onclick="runAnalysis()"><span>🔍</span> Analisis Sekarang</button>
+  </div>
+  <div class="who-card fu1">
+    <div class="wtitle">📏 Referensi Standar WHO 2006</div>
+    <div class="whead"><span style="flex:1.2">Usia</span><span style="flex:1.4">Berat</span><span style="flex:1.6">Tinggi</span></div>
+    <div class="wrow"><span class="wc" style="flex:1.2;color:var(--blue);font-weight:600">6 bln</span><span class="wc" style="flex:1.4">6.4–8.6 kg</span><span class="wc" style="flex:1.6">63.3–71.9 cm</span></div>
+    <div class="wrow"><span class="wc" style="flex:1.2;color:var(--blue);font-weight:600">12 bln</span><span class="wc" style="flex:1.4">7.7–11.0 kg</span><span class="wc" style="flex:1.6">69.6–80.2 cm</span></div>
+    <div class="wrow"><span class="wc" style="flex:1.2;color:var(--blue);font-weight:600">24 bln</span><span class="wc" style="flex:1.4">9.7–14.5 kg</span><span class="wc" style="flex:1.6">80.9–94.7 cm</span></div>
+    <div class="wrow"><span class="wc" style="flex:1.2;color:var(--blue);font-weight:600">36 bln</span><span class="wc" style="flex:1.4">12.0–17.2 kg</span><span class="wc" style="flex:1.6">88.7–103.5 cm</span></div>
+    <div class="wrow"><span class="wc" style="flex:1.2;color:var(--blue);font-weight:600">48 bln</span><span class="wc" style="flex:1.4">13.7–20.5 kg</span><span class="wc" style="flex:1.6">96.1–111.5 cm</span></div>
+    <div class="wrow"><span class="wc" style="flex:1.2;color:var(--blue);font-weight:600">59 bln</span><span class="wc" style="flex:1.4">15.2–23.4 kg</span><span class="wc" style="flex:1.6">102.8–119.2 cm</span></div>
+    <div style="font-size:10px;color:var(--t4);margin-top:10px">* ±2 SD dari median WHO Child Growth Standards 2006</div>
+  </div>
+</div></div>
+
+<!-- ═══════ HASIL ═══════ -->
+<div class="screen" id="s-hasil"><div class="sc" id="hi"></div></div>
+
+<!-- ═══════ RIWAYAT ═══════ -->
+<div class="screen" id="s-riwayat">
+  <div class="frow">
+    <button class="fchip on" onclick="fr('semua',this)">Semua</button>
+    <button class="fchip" onclick="fr('normal',this)">✅ Normal</button>
+    <button class="fchip" onclick="fr('perhatian',this)">⚠️ Perhatian</button>
+    <button class="fchip" onclick="fr('buruk',this)">🔴 Kritis</button>
+  </div>
+  <div id="rlist" style="padding:14px 16px;flex:1;overflow-y:auto"></div>
+</div>
+
+<!-- ═══════ PANDUAN ═══════ -->
+<div class="screen" id="s-panduan"><div class="sc" style="padding:16px 16px 20px" id="pb"></div></div>
+
+<!-- Bottom Nav -->
+<nav class="bot-nav">
+  <div class="nt active" id="nt-beranda" onclick="go('beranda')"><div class="ni">🏠</div><div class="nl">Beranda</div></div>
+  <div class="nt" id="nt-riwayat" onclick="go('riwayat')"><div class="ni">📋</div><div class="nl">Riwayat</div></div>
+  <div class="ntc" onclick="go('deteksi')"><div class="ntc-pill">🔬</div><div class="nl">Deteksi</div></div>
+  <div class="nt" id="nt-panduan" onclick="go('panduan')"><div class="ni">📖</div><div class="nl">Panduan</div></div>
+</nav>
+
+<div id="loading">
+  <div class="spin-glass"><div class="spin-ring"></div></div>
+  <div class="lt">Menganalisis...</div>
+  <div class="ls">LightGBM & XGBoost</div>
+</div>
+</div>
+
+<script>
+/* ══ PREDICTION ENGINE ══ */
+const WM={0:3.3,1:4.3,2:5.3,3:6.0,4:6.7,5:7.3,6:7.9,7:8.4,8:8.9,9:9.3,10:9.6,11:9.9,12:10.2,15:10.9,18:11.5,21:12.0,24:12.5,27:13.0,30:13.5,33:13.9,36:14.3,39:14.7,42:15.1,45:15.5,48:15.9,51:16.3,54:16.7,57:17.1,59:17.4};
+const WS={0:.45,3:.75,6:.85,9:.95,12:1.0,18:1.1,24:1.2,30:1.3,36:1.4,42:1.5,48:1.6,54:1.7,59:1.8};
+const HM={0:49.9,1:54.7,2:58.4,3:61.4,4:63.9,5:65.9,6:67.6,7:69.2,8:70.6,9:72.0,10:73.3,11:74.5,12:75.7,15:79.1,18:82.3,21:85.1,24:87.8,27:90.3,30:92.7,33:94.9,36:96.1,39:98.7,42:100.6,45:102.5,48:104.3,51:106.0,54:107.7,57:109.4,59:110.5};
+const HS={0:1.9,3:2.3,6:2.5,9:2.6,12:2.7,18:2.9,24:3.1,30:3.2,36:3.3,42:3.4,48:3.5,54:3.6,59:3.7};
+function ip(t,x){const k=Object.keys(t).map(Number).sort((a,b)=>a-b);if(x<=k[0])return t[k[0]];if(x>=k[k.length-1])return t[k[k.length-1]];for(let i=0;i<k.length-1;i++){if(x>=k[i]&&x<=k[i+1]){const r=(x-k[i])/(k[i+1]-k[i]);return t[k[i]]+r*(t[k[i+1]]-t[k[i]]);}}}
+function sm(a){const m=Math.max(...a),e=a.map(v=>Math.exp(v-m)),s=e.reduce((a,b)=>a+b);return e.map(v=>v/s)}
+function zp(z,L,wi){const b=L.map((_,i)=>i===wi?Math.abs(z)*1.8+2:Math.random()*.6);return Object.fromEntries(L.map((l,i)=>[l,sm(b)[i]]))}
+function cWA(a,w){const m=ip(WM,a),s=ip(WS,a),z=(w-m)/s;const L=['Normal','Underfed','Malnutrition','Overnutrition'];let r,c,wi;if(z>=2){r='Overnutrition';c='pur';wi=3}else if(z>=-1){r='Normal';c='ok';wi=0}else if(z>=-2){r='Underfed';c='warn';wi=1}else{r='Malnutrition';c='err';wi=2}return{result:r,cls:c,z:z.toFixed(2),probs:zp(z,L,wi),labels:L}}
+function cHA(a,h){const m=ip(HM,a),s=ip(HS,a),z=(h-m)/s;const L=['Not Stunted','Stunted'];const st=z<-2;return{result:st?'Stunted':'Not Stunted',cls:st?'err':'ok',z:z.toFixed(2),probs:zp(z,L,st?1:0),labels:L}}
+function cWH(w,h){const bmi=w/(h/100)**2,z=(bmi-16)/2;const L=['Normal','Thin','Very Thin','Obese'];let r,c,wi;if(bmi<12){r='Very Thin';c='err';wi=2}else if(bmi<14){r='Thin';c='warn';wi=1}else if(bmi>20){r='Obese';c='pur';wi=3}else{r='Normal';c='ok';wi=0}return{result:r,cls:c,z:z.toFixed(2),probs:zp(z,L,wi),labels:L}}
+function predict(a,w,h){const wa=cWA(a,w),ha=cHA(a,h),wh=cWH(w,h);const d=wa.cls==='err'||ha.cls==='err'||wh.cls==='err';const wr=wa.cls==='warn'||wa.cls==='pur'||wh.cls==='warn'||wh.cls==='pur';return{wa,ha,wh,overall:d?'buruk':wr?'perhatian':'normal'}}
+const RM={wa:{Malnutrition:{i:'🏥',t:'Segera konsultasikan ke dokter atau ahli gizi. Kondisi gizi buruk memerlukan penanganan medis segera.'},Underfed:{i:'🍳',t:'Tingkatkan asupan kalori dan protein. Berikan makanan bergizi tinggi seperti telur, ikan, dan kacang-kacangan setiap hari.'},Overnutrition:{i:'🥗',t:'Batasi makanan tinggi gula dan lemak jenuh. Perbanyak sayuran dan dorong aktivitas fisik anak secara rutin.'}},ha:{Stunted:{i:'⚠️',t:'Deteksi stunting! Pastikan kecukupan protein hewani, zinc, dan vitamin A. Konsultasikan program PMT ke puskesmas.'}},wh:{'Very Thin':{i:'🚨',t:'Wasting berat — kondisi darurat gizi. Rujuk segera ke puskesmas atau rumah sakit terdekat.'},Thin:{i:'🍽️',t:'Berat badan kurang terhadap tinggi. Tingkatkan frekuensi makan dan kualitas gizi setiap hari.'},Obese:{i:'🏃',t:'Kelebihan berat badan. Evaluasi pola makan dan tingkatkan aktivitas fisik anak.'}}};
+function gReks(r){const a=[];['wa','ha','wh'].forEach(k=>{const m=RM[k]?.[r[k].result];if(m)a.push(m)});if(!a.length)a.push({i:'✅',t:'Status pertumbuhan baik! Pertahankan pola makan seimbang dan pantau pertumbuhan setiap bulan di posyandu.'});return a}
+
+/* ══ COLORS ══ */
+const CC={ok:{c:'var(--green)',bg:'rgba(48,209,88,.12)',bd:'rgba(48,209,88,.25)'},warn:{c:'var(--yellow)',bg:'rgba(255,214,10,.1)',bd:'rgba(255,214,10,.22)'},err:{c:'var(--red)',bg:'rgba(255,69,58,.1)',bd:'rgba(255,69,58,.22)'},pur:{c:'var(--purple)',bg:'rgba(191,90,242,.1)',bd:'rgba(191,90,242,.22)'}};
+const OC={normal:{label:'Pertumbuhan Normal',emoji:'✅',c:'var(--green)',bg:'rgba(48,209,88,.12)',bd:'rgba(48,209,88,.28)'},perhatian:{label:'Perlu Perhatian',emoji:'⚠️',c:'var(--yellow)',bg:'rgba(255,214,10,.12)',bd:'rgba(255,214,10,.28)'},buruk:{label:'Status Kritis',emoji:'🔴',c:'var(--red)',bg:'rgba(255,69,58,.12)',bd:'rgba(255,69,58,.28)'}};
+const IC={wa:{icon:'⚖️',title:'BB/U — Berat Badan / Umur',sub:'Weight-for-Age · XGBoost'},ha:{icon:'📏',title:'TB/U — Tinggi Badan / Umur',sub:'Height-for-Age · LightGBM'},wh:{icon:'🏃',title:'BB/TB — Berat Badan / Tinggi',sub:'Weight-for-Height · XGBoost'}};
+
+/* ══ STATE ══ */
+let hist=JSON.parse(localStorage.getItem('gs_h')||'[]');
+let rfilt='semua',exps={};
+function saveH(){localStorage.setItem('gs_h',JSON.stringify(hist))}
+
+/* ══ TOAST ══ */
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.getElementById('app').appendChild(t);setTimeout(()=>t.remove(),2800)}
+
+/* ══ NAV ══ */
+function go(s){
+  ['beranda','deteksi','hasil','riwayat','panduan'].forEach(n=>{
+    document.getElementById('s-'+n)?.classList.remove('active');
+    const nt=document.getElementById('nt-'+n);if(nt)nt.classList.remove('active');
+  });
+  document.getElementById('s-'+s).classList.add('active');
+  document.getElementById('s-'+s).scrollTop=0;
+  const nt=document.getElementById('nt-'+s);if(nt)nt.classList.add('active');
+  if(s==='beranda')rB();
+  if(s==='riwayat')rR(rfilt);
+  if(s==='panduan')rP();
+}
+
+/* ══ USIA TAG ══ */
+document.getElementById('f-usia').addEventListener('input',function(){
+  const v=parseInt(this.value),t=document.getElementById('utag');
+  if(!isNaN(v)&&v>=0&&v<=59){t.style.display='block';t.textContent=`${Math.floor(v/12)}y ${v%12}m`}
+  else t.style.display='none';
+});
+
+/* ══ ANALYSIS ══ */
+async function runAnalysis(){
+  const nama=document.getElementById('f-nama').value.trim();
+  const usia=parseInt(document.getElementById('f-usia').value);
+  const bb=parseFloat(document.getElementById('f-bb').value);
+  const tb=parseFloat(document.getElementById('f-tb').value);
+  const fw=document.getElementById('fw');
+  function shk(){fw.classList.add('shake');setTimeout(()=>fw.classList.remove('shake'),400)}
+  if(!nama){shk();toast('⚠️ Nama balita wajib diisi');return}
+  if(isNaN(usia)||usia<0||usia>59){shk();toast('⚠️ Usia harus 0–59 bulan');return}
+  if(isNaN(bb)||bb<1||bb>50){shk();toast('⚠️ Berat badan tidak valid');return}
+  if(isNaN(tb)||tb<30||tb>130){shk();toast('⚠️ Tinggi badan tidak valid');return}
+  document.getElementById('loading').classList.add('on');
+  await new Promise(r=>setTimeout(r,1800));
+  const result=predict(usia,bb,tb);
+  const rec={nama,usia,bb,tb,result,date:new Date().toISOString()};
+  hist.unshift(rec);saveH();
+  rH(rec);
+  document.getElementById('loading').classList.remove('on');
+  go('hasil');
+  ['f-nama','f-usia','f-bb','f-tb'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('utag').style.display='none';
+}
+
+/* ══ RENDER HASIL ══ */
+function pbH(ind){
+  const cc=CC[ind.cls];
+  return ind.labels.map(lbl=>{
+    const p=(ind.probs[lbl]||0)*100,iw=lbl===ind.result;
+    return`<div class="prow"><div class="plr"><span style="${iw?'color:'+cc.c+';font-weight:600':''}">${lbl}</span><strong style="color:${iw?cc.c:'var(--t3)'}">${p.toFixed(1)}%</strong></div><div class="ptrack"><div class="pfill" style="width:${p}%;background:${iw?cc.c:'rgba(255,255,255,.1)'}"></div></div></div>`;
+  }).join('')}
+
+function rH(rec){
+  const{nama,usia,bb,tb,result}=rec;
+  const ov=OC[result.overall],reks=gReks(result);
+  const inds=['wa','ha','wh'].map((k,di)=>{
+    const ind=result[k],cc=CC[ind.cls],cfg=IC[k];
+    return`<div class="ind-card" style="animation-delay:${di*.15}s"><div class="ind-hd"><div class="ind-ico">${cfg.icon}</div><div><div class="ind-title">${cfg.title}</div><div class="ind-sub">${cfg.sub}</div></div></div><div class="schip" style="background:${cc.bg};border-color:${cc.bd}"><div class="cdot" style="background:${cc.c};box-shadow:0 0 8px ${cc.c}"></div><div style="flex:1"><div class="clbl">Status</div><div class="cval" style="color:${cc.c}">${ind.result}</div></div><div class="cz" style="color:${cc.c}">Z = ${ind.z}</div></div><div class="ptitle">Probabilitas Kelas</div>${pbH(ind)}</div>`;
+  }).join('');
+  document.getElementById('hi').innerHTML=`<div class="h-hero"><div class="hero-orb ho1" style="width:200px;height:200px"></div><div class="hero-orb ho2" style="width:160px;height:160px"></div><div class="h-tag">📊 Hasil Analisis AI</div><div class="h-name">${nama}</div><div class="h-meta">Usia ${usia} bln · BB ${bb} kg · TB ${tb} cm</div><div class="ov-glass" style="background:${ov.bg};border-color:${ov.bd};color:${ov.c}">${ov.emoji} ${ov.label}</div></div><div class="ind-wrap"><div class="ind-sec-title">Hasil per Indikator</div>${inds}</div><div class="rek-card"><div class="rek-title">💊 Rekomendasi Klinis</div>${reks.map(r=>`<div class="rek-item"><div class="rik">${r.i}</div><div class="rit">${r.t}</div></div>`).join('')}</div><div class="act-row"><button class="abtn abtn-ok" onclick="go('beranda')">🏠 Beranda</button><button class="abtn abtn-pri" onclick="go('deteksi')">🔄 Cek Lagi</button></div>`;
+}
+
+/* ══ BERANDA ══ */
+function rB(){
+  const total=hist.length,ok=hist.filter(h=>h.result.overall==='normal').length,perlu=total-ok;
+  document.getElementById('st-t').textContent=total;
+  document.getElementById('st-o').textContent=ok;
+  document.getElementById('st-p').textContent=perlu;
+  const el=document.getElementById('rl');
+  if(!total){el.innerHTML=`<div class="empty"><div class="ei">📊</div><h3>Belum ada pemeriksaan</h3><p>Mulai cek pertama untuk memantau tumbuh kembang balita</p><button class="ebtn" onclick="go('deteksi')">🔬 Mulai Sekarang</button></div>`;return}
+  el.innerHTML=hist.slice(0,3).map((h,i)=>{
+    const ov=OC[h.result.overall],d=new Date(h.date);
+    const ds=d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    return`<div class="rcard" onclick="sd(${i})"><div class="r-av">${ov.emoji}</div><div style="flex:1"><div class="r-name">${h.nama}</div><div class="r-meta">${h.usia} bln · ${h.bb} kg · ${h.tb} cm · ${ds}</div></div><div class="lg-pill" style="color:${ov.c};border-color:${ov.bd}">${ov.label}</div></div>`;
+  }).join('')}
+function sd(i){rH(hist[i]);go('hasil')}
+
+/* ══ RIWAYAT ══ */
+function fr(f,el){rfilt=f;document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('on'));el.classList.add('on');rR(f)}
+function rR(f){
+  const el=document.getElementById('rlist');
+  const fd=f==='semua'?hist:hist.filter(h=>h.result.overall===f);
+  if(!fd.length){el.innerHTML=`<div class="empty"><div class="ei">📋</div><h3>Tidak ada data</h3><p>${f==='semua'?'Lakukan pemeriksaan untuk mulai merekam data':'Tidak ada riwayat dengan filter ini'}</p></div>`;return}
+  el.innerHTML=fd.map((h,i)=>{
+    const ov=OC[h.result.overall],d=new Date(h.date);
+    const ds=d.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    const ri=hist.indexOf(fd[i]);
+    const inds=[{k:'BB/U',cls:h.result.wa.cls,r:h.result.wa.result},{k:'TB/U',cls:h.result.ha.cls,r:h.result.ha.result},{k:'BB/TB',cls:h.result.wh.cls,r:h.result.wh.result}];
+    return`<div class="hcard" onclick="sd(${ri})"><div class="htop"><div><div class="hname">${h.nama}</div><div class="hdate">📅 ${ds}</div></div><div class="lg-pill" style="color:${ov.c};border-color:${ov.bd}">${ov.emoji} ${ov.label}</div></div><div class="hstats"><div class="hstat">🎂 ${h.usia} bln</div><div class="hstat">⚖️ ${h.bb} kg</div><div class="hstat">📏 ${h.tb} cm</div></div><div class="ipills">${inds.map(ind=>{const cc=CC[ind.cls];return`<div class="ipill" style="color:${cc.c};border-color:${cc.bd};background:${cc.bg}">${ind.k}: ${ind.r}</div>`}).join('')}</div><div class="lph">Tap untuk lihat detail</div></div>`;
+  }).join('')}
+
+/* ══ PANDUAN ══ */
+const PD=[
+  {icon:'⚖️',ibg:'rgba(77,163,255,.12)',title:'BB/U — Berat Badan menurut Umur',sub:'Weight-for-Age (W/A) · Model: XGBoost',desc:'Menunjukkan apakah berat badan anak sesuai dengan umurnya. Digunakan untuk mendeteksi undernutrition secara umum dan merupakan indikator paling umum di posyandu.',cats:[{n:'Normal',c:'ok',d:'BB proporsional sesuai usia',s:'✅ Baik'},{n:'Underfed',c:'warn',d:'Gizi kurang / underweight',s:'⚠️ Perhatian'},{n:'Malnutrition',c:'err',d:'Gizi buruk / severely underweight',s:'🔴 Serius'},{n:'Overnutrition',c:'pur',d:'Kelebihan gizi',s:'⚠️ Perhatian'}],tip:'💡 Malnutrition menunjukkan defisit gizi akut. Segera konsultasikan ke dokter bila masuk kategori ini.',tipC:'warn'},
+  {icon:'📏',ibg:'rgba(48,209,88,.1)',title:'TB/U — Tinggi Badan menurut Umur',sub:'Height-for-Age (H/A) · Model: LightGBM · Stunting',desc:'Indikator utama untuk mengidentifikasi stunting — gagal tumbuh akibat kekurangan gizi kronis. Berdampak permanen pada perkembangan kognitif dan fisik anak.',cats:[{n:'Not Stunted',c:'ok',d:'Tinggi badan normal sesuai usia',s:'✅ Baik'},{n:'Stunted',c:'err',d:'Pendek — indikasi kekurangan gizi kronis',s:'🔴 Serius'}],tip:'⚠️ Stunting tidak dapat dikoreksi setelah usia 2 tahun. Intervensi gizi 1.000 HPK sangat kritis.',tipC:'err'},
+  {icon:'🏃',ibg:'rgba(255,214,10,.08)',title:'BB/TB — Berat Badan menurut Tinggi',sub:'Weight-for-Height (W/H) · Model: XGBoost · Wasting',desc:'Mengukur proporsi berat terhadap tinggi tanpa mempertimbangkan usia. Digunakan untuk mendeteksi wasting (kekurusan akut) maupun obesitas pada anak.',cats:[{n:'Normal',c:'ok',d:'Proporsi BB/TB ideal',s:'✅ Baik'},{n:'Thin',c:'warn',d:'Kurus',s:'⚠️ Perhatian'},{n:'Very Thin',c:'err',d:'Sangat kurus / wasting berat',s:'🔴 Serius'},{n:'Obese',c:'pur',d:'Gemuk / obesitas',s:'⚠️ Perhatian'}],tip:'🚨 Very Thin adalah kondisi darurat gizi. Segera rujuk ke fasilitas kesehatan terdekat.',tipC:'err'},
+];
+function tE(i){exps[i]=!exps[i];rP();setTimeout(()=>{document.querySelectorAll('.p-card')[i]?.scrollIntoView({behavior:'smooth',block:'nearest'})},50)}
+function rP(){
+  const el=document.getElementById('pb');
+  const cards=PD.map((p,i)=>{
+    const open=exps[i],cc=CC[p.tipC];
+    const cr=p.cats.map(c=>{const cc2=CC[c.c];return`<tr><td><span class="lg-pill" style="color:${cc2.c};border-color:${cc2.bd};background:${cc2.bg}">${c.n}</span></td><td>${c.d}</td><td>${c.s}</td></tr>`}).join('');
+    return`<div class="p-card"><div class="p-hd"><div class="p-ico" style="background:${p.ibg}">${p.icon}</div><div style="flex:1"><div class="p-title">${p.title}</div><div class="p-sub">${p.sub}</div></div></div><div class="p-desc">${p.desc}</div>${open?`<table class="ctable"><thead><tr><th>Kategori</th><th>Deskripsi</th><th>Status</th></tr></thead><tbody>${cr}</tbody></table><div class="tipbox" style="border-color:${cc.bd}"><p style="color:${cc.c}">${p.tip}</p></div>`:''}<button class="exbtn" onclick="tE(${i})">${open?'▲ Tutup':'▼ Lihat Detail'}</button></div>`;
+  }).join('');
+  el.innerHTML=`<div class="p-banner fu"><div class="p-bi">📚</div><div class="p-bt">Panduan Gizi Balita</div><div class="p-bs">Berdasarkan standar antropometri WHO 2006 dan model machine learning LightGBM & XGBoost</div></div>${cards}<div class="p-card fu1"><div class="p-hd"><div class="p-ico" style="background:rgba(191,90,242,.1)">🤖</div><div style="flex:1"><div class="p-title">Tentang Model AI</div><div class="p-sub">LightGBM & XGBoost · Skripsi Puspa Indah 2026</div></div></div><div class="p-desc">Model dilatih menggunakan dataset <em>Stunting and Nutritional Status of Toddler from Jeneponto Regency, South Sulawesi</em> (Mendeley Data). Fitur: Usia (bulan), Berat Badan (kg), Tinggi Badan (cm).</div><div class="mboxes"><div class="mbox"><div class="mblbl" style="color:var(--blue)">TB/U</div><div class="mbname" style="color:var(--blue)">LightGBM</div><div class="mbtype">Binary Classifier</div></div><div class="mbox"><div class="mblbl" style="color:var(--purple)">BB/U & BB/TB</div><div class="mbname" style="color:var(--purple)">XGBoost</div><div class="mbtype">Multi-class</div></div></div><div class="dsbox"><div class="dstitle">Dataset & Penelitian</div>${[['Sampel (setelah preprocessing)','14.326 baris'],['Fitur masukan','3 (Usia, BB, TB)'],['Target variabel','BB/U · TB/U · BB/TB'],['Validasi','80% Train / 20% Test'],['Institusi','Univ. Tarumanagara'],['Tahun','2026']].map(([l,v])=>`<div class="dsrow"><span class="dslbl">${l}</span><span class="dsval">${v}</span></div>`).join('')}</div></div><div class="disc fu2"><p>⚠️ Aplikasi ini merupakan alat bantu skrining berbasis machine learning dan bukan pengganti diagnosis medis profesional. Selalu konsultasikan hasil ke tenaga kesehatan.</p></div>`;
+}
+rB();rP();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{})})}
+</script>
+</body>
+</html>

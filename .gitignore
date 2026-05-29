@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+expo/node_modules/
+
+# Expo and build output
+.expo/
+expo/.expo/
+dist/
+expo/dist/
+web-build/
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Logs
+*.log
+*.out.log
+*.err.log
+
+# Environment and secret files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+google-services.json
+GoogleService-Info.plist
+serviceAccount*.json
+firebase*.json
+
+# Research data and generated ML artifacts
+backend/*.xlsx
+backend/*.xls
+backend/*.ipynb
+backend/*.pkl
+backend/model_terbaik/*.pkl
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

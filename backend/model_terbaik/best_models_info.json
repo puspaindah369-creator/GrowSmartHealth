@@ -1,0 +1,54 @@
+{
+    "Height for Age": {
+        "model_name": "LightGBM",
+        "model_path": "model_terbaik\\best_model_height_for_age_lightgbm.pkl",
+        "features": [
+            "gender_enc",
+            "date_of_birth",
+            "date_of_measurement",
+            "age_month",
+            "weight",
+            "height"
+        ],
+        "label_mapping": {
+            "0": "Stunted",
+            "1": "Not Stunted"
+        }
+    },
+    "Weight for Age": {
+        "model_name": "LightGBM",
+        "model_path": "model_terbaik\\best_model_weight_for_age_lightgbm.pkl",
+        "features": [
+            "gender_enc",
+            "date_of_birth",
+            "date_of_measurement",
+            "age_month",
+            "weight",
+            "height"
+        ],
+        "label_mapping": {
+            "0": "Malnutrition",
+            "1": "Underfed",
+            "2": "Normal",
+            "3": "Overnutrition"
+        }
+    },
+    "Weight for Height": {
+        "model_name": "LightGBM",
+        "model_path": "model_terbaik\\best_model_weight_for_height_lightgbm.pkl",
+        "features": [
+            "gender_enc",
+            "date_of_birth",
+            "date_of_measurement",
+            "age_month",
+            "weight",
+            "height"
+        ],
+        "label_mapping": {
+            "0": "Very Thin",
+            "1": "Thin",
+            "2": "Normal",
+            "3": "Obese"
+        }
+    }
+}

@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "GrowSmart Health",
+    "slug": "growsmart-health",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#1E40AF"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.growsmart.health"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1E40AF"
+      },
+      "package": "com.growsmart.health",
+      "versionCode": 1
+    },
+    "web": {
+      "favicon": "./assets/icon.png",
+      "name": "GrowSmart Health",
+      "shortName": "GrowSmart",
+      "description": "Aplikasi klasifikasi status gizi balita berbasis AI (LightGBM & XGBoost)",
+      "themeColor": "#2563EB",
+      "backgroundColor": "#F8FAFC",
+      "display": "standalone",
+      "orientation": "portrait"
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": []
+        }
+      ]
+    ]
+  }
+}
