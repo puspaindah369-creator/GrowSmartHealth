@@ -40,8 +40,8 @@ firebase*.json
 backend/*.xlsx
 backend/*.xls
 backend/*.ipynb
-backend/*.pkl
-backend/model_terbaik/*.pkl
+# backend/*.pkl
+# backend/model_terbaik/*.pkl
 
 # OS and editor files
 .DS_Store
