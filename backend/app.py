@@ -35,6 +35,7 @@ BEST_MODELS_DIR = BASE_DIR / "model_terbaik"
 BEST_MODELS_INFO_PATH = BEST_MODELS_DIR / "best_models_info.json"
 GENDER_BEST_MODELS_INFO_PATH = BEST_MODELS_DIR / "best_models_info_gender.json"
 ENCODER_INFO_PATH = BASE_DIR / "label_encoder_dan_mapping.pkl"
+ALT_ENCODER_INFO_PATH = BEST_MODELS_DIR / "label_encoder_dan_mapping.pkl"
 DATASET_PATH = BASE_DIR / "Data Stunting.xlsx"
 HOST = "0.0.0.0"
 PORT = int(os.getenv("PORT", "5000"))
@@ -187,13 +188,15 @@ BEST_MODELS_INFO_BY_GENDER = load_optional_best_models_info_by_gender()
 
 def load_encoder_info() -> Dict[str, object]:
     # Encoder dipakai untuk mengubah gender ke bentuk numerik.
-    if not ENCODER_INFO_PATH.exists():
+    encoder_path = ENCODER_INFO_PATH if ENCODER_INFO_PATH.exists() else ALT_ENCODER_INFO_PATH
+    if not encoder_path.exists():
         raise FileNotFoundError(
             f"File label encoder tidak ditemukan: {ENCODER_INFO_PATH}\n"
+            f"Atau: {ALT_ENCODER_INFO_PATH}\n"
             "Jalankan ulang notebook sampai cell penyimpanan label encoder."
         )
 
-    return joblib.load(ENCODER_INFO_PATH)
+    return joblib.load(encoder_path)
 
 
 ENCODER_INFO = load_encoder_info()
