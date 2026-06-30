@@ -1,9 +1,9 @@
 # GrowSmart Health 🌱
 
-**Aplikasi klasifikasi status gizi balita berbasis AI**
+**Klasifikasi Status Tumbuh Kembang dan Gizi Balita Menggunakan LightGBM dan XGBoost**
 Menggunakan model LightGBM (TB/U) & XGBoost (BB/U, BB/TB)
 
-Skripsi: Puspa Indah — Universitas Tarumanagara
+Skripsi: Puspa Indah / 535220035 — Universitas Tarumanagara
 
 ---
 
