@@ -135,7 +135,7 @@ npx vercel --prod
 
 ---
 
-**Deploy API gratis:** Railway.app, Render.com, atau Koyeb.com**
+**Deploy API gratis:** Railway.app, Render.com, atau Koyeb.com
 
 ---
 
