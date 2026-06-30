@@ -399,7 +399,7 @@ export default function DeteksiScreen({ navigation }) {
         </Animated.View>
 
         <View style={styles.whoCard}>
-          <Text style={styles.whoTitle}>Referensi Standar WHO {gender || 'Laki-laki/Perempuan'}</Text>
+          <Text style={styles.whoTitle}>Referensi Standar WHO</Text>
           <View style={styles.whoHeader}>
             <Text style={[styles.whoCell, { flex: 1.2, fontWeight: FONTS.bold, color: COLORS.textSecondary }]}>Usia</Text>
             <Text style={[styles.whoCell, { flex: 1.4, fontWeight: FONTS.bold, color: COLORS.textSecondary }]}>Berat Normal</Text>
