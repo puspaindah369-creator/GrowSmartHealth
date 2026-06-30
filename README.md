@@ -121,7 +121,7 @@ npx vercel --prod
 
 ---
 
-## 🤖 Model AI
+## 🤖 Model Machine Learning
 
 | Indikator | Model | Jenis |
 |-----------|-------|-------|
@@ -135,48 +135,7 @@ npx vercel --prod
 
 ---
 
-## 🔧 Integrasi Model .pkl Asli
-
-Untuk menggunakan model `.pkl` dari skripsi di aplikasi mobile:
-
-**1. Buat API Python (FastAPI)**
-```python
-# api.py
-from fastapi import FastAPI
-import joblib, numpy as np
-
-app = FastAPI()
-m_wa = joblib.load("best_model_weight_for_age.pkl")
-m_ha = joblib.load("best_model_height_for_age.pkl")
-m_wh = joblib.load("best_model_weight_for_height.pkl")
-
-@app.post("/predict")
-def predict(data: dict):
-    X = [[data["age"], data["weight"], data["height"]]]
-    return {
-        "wa": { "class": int(m_wa.predict(X)[0]), "proba": m_wa.predict_proba(X)[0].tolist() },
-        "ha": { "class": int(m_ha.predict(X)[0]), "proba": m_ha.predict_proba(X)[0].tolist() },
-        "wh": { "class": int(m_wh.predict(X)[0]), "proba": m_wh.predict_proba(X)[0].tolist() },
-    }
-```
-
-```bash
-pip install fastapi uvicorn joblib scikit-learn lightgbm xgboost
-uvicorn api:app --host 0.0.0.0 --port 8000
-```
-
-**2. Panggil dari aplikasi**
-```javascript
-// Di predict.js / JS app, ganti fungsi predict() dengan:
-const res = await fetch("https://your-api.com/predict", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ age: usia, weight: bb, height: tb })
-});
-const data = await res.json();
-```
-
-**Deploy API gratis:** Railway.app, Render.com, atau Koyeb.com
+**Deploy API gratis:** Railway.app, Render.com, atau Koyeb.com**
 
 ---
 
