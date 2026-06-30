@@ -1,7 +1,7 @@
 # GrowSmart Health 🌱
 
 **Klasifikasi Status Tumbuh Kembang dan Gizi Balita Menggunakan LightGBM dan XGBoost**
-Menggunakan model LightGBM (TB/U) & XGBoost (BB/U, BB/TB)
+Menggunakan model LightGBM & XGBOOST
 
 Skripsi: Puspa Indah / 535220035 — Universitas Tarumanagara
 
