@@ -106,15 +106,25 @@ function SubmitBtn({ loading, onPress }) {
   }
 }
 
-// Tabel kecil referensi WHO yang ditampilkan di bawah form.
-const WHO_REF = [
-  { label: '6 bln', berat: '6.4-8.6 kg', tinggi: '63.3-71.9 cm' },
-  { label: '12 bln', berat: '7.7-11.0 kg', tinggi: '69.6-80.2 cm' },
-  { label: '24 bln', berat: '9.7-14.5 kg', tinggi: '80.9-94.7 cm' },
-  { label: '36 bln', berat: '12.0-17.2 kg', tinggi: '88.7-103.5 cm' },
-  { label: '48 bln', berat: '13.7-20.5 kg', tinggi: '96.1-111.5 cm' },
-  { label: '59 bln', berat: '15.2-23.4 kg', tinggi: '102.8-119.2 cm' },
-];
+// Tabel kecil referensi WHO (-2 SD s.d. +2 SD) yang ditampilkan sesuai jenis kelamin.
+const WHO_REF_BY_GENDER = {
+  'Laki-laki': [
+    { label: '6 bln', berat: '6.4-9.8 kg', tinggi: '63.3-71.9 cm' },
+    { label: '12 bln', berat: '7.7-12.0 kg', tinggi: '71.0-80.5 cm' },
+    { label: '24 bln', berat: '9.7-15.3 kg', tinggi: '81.7-93.9 cm' },
+    { label: '36 bln', berat: '11.3-18.3 kg', tinggi: '88.7-103.5 cm' },
+    { label: '48 bln', berat: '12.7-21.2 kg', tinggi: '94.9-111.7 cm' },
+    { label: '59 bln', berat: '14.1-24.2 kg', tinggi: '101.2-118.2 cm' },
+  ],
+  Perempuan: [
+    { label: '6 bln', berat: '5.7-9.3 kg', tinggi: '61.2-70.3 cm' },
+    { label: '12 bln', berat: '7.0-11.5 kg', tinggi: '68.9-79.2 cm' },
+    { label: '24 bln', berat: '9.0-14.8 kg', tinggi: '80.0-92.9 cm' },
+    { label: '36 bln', berat: '10.8-18.1 kg', tinggi: '87.4-102.7 cm' },
+    { label: '48 bln', berat: '12.3-21.5 kg', tinggi: '94.1-111.3 cm' },
+    { label: '59 bln', berat: '13.7-24.9 kg', tinggi: '100.3-117.7 cm' },
+  ],
+};
 
 // Halaman input data balita untuk menjalankan analisis status gizi.
 export default function DeteksiScreen({ navigation }) {
@@ -127,6 +137,7 @@ export default function DeteksiScreen({ navigation }) {
   const [bb, setBb] = useState('');
   const [tb, setTb] = useState('');
   const [loading, setLoading] = useState(false);
+  const whoRef = WHO_REF_BY_GENDER[gender] || WHO_REF_BY_GENDER['Laki-laki'];
   // Nilai animasi untuk efek shake saat validasi gagal.
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
@@ -388,20 +399,20 @@ export default function DeteksiScreen({ navigation }) {
         </Animated.View>
 
         <View style={styles.whoCard}>
-          <Text style={styles.whoTitle}>Referensi Standar WHO</Text>
+          <Text style={styles.whoTitle}>Referensi Standar WHO {gender || 'Laki-laki/Perempuan'}</Text>
           <View style={styles.whoHeader}>
             <Text style={[styles.whoCell, { flex: 1.2, fontWeight: FONTS.bold, color: COLORS.textSecondary }]}>Usia</Text>
             <Text style={[styles.whoCell, { flex: 1.4, fontWeight: FONTS.bold, color: COLORS.textSecondary }]}>Berat Normal</Text>
             <Text style={[styles.whoCell, { flex: 1.6, fontWeight: FONTS.bold, color: COLORS.textSecondary }]}>Tinggi Normal</Text>
           </View>
-          {WHO_REF.map((r, i) => (
+          {whoRef.map((r, i) => (
             <View key={i} style={[styles.whoRow, i % 2 === 0 && { backgroundColor: COLORS.primaryLight }]}>
               <Text style={[styles.whoCell, { flex: 1.2, fontWeight: FONTS.semibold, color: COLORS.primary }]}>{r.label}</Text>
               <Text style={[styles.whoCell, { flex: 1.4 }]}>{r.berat}</Text>
               <Text style={[styles.whoCell, { flex: 1.6 }]}>{r.tinggi}</Text>
             </View>
           ))}
-          <Text style={styles.whoNote}>* Rentang referensi mengikuti standar pertumbuhan WHO 2006</Text>
+          <Text style={styles.whoNote}>* Rentang normal -2 SD s.d. +2 SD mengikuti standar pertumbuhan WHO 2006 dan berbeda untuk laki-laki/perempuan.</Text>
         </View>
       </ScrollView>
     </View>

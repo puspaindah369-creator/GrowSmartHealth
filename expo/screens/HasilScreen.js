@@ -52,7 +52,7 @@ const WHO_LABEL_MAP = {
     Overnutrition: 'Gizi lebih (overweight)',
   },
   ha: {
-    Stunted: 'Stunted',
+    Stunted: 'Pendek (stunted)',
     'Not Stunted': 'Normal',
   },
   wh: {
@@ -63,9 +63,32 @@ const WHO_LABEL_MAP = {
   },
 };
 
+const WHO_CUTOFF_MAP = {
+  wa: {
+    Malnutrition: 'Z-score < -3 SD',
+    Underfed: '-3 SD s.d. < -2 SD',
+    Normal: '-2 SD s.d. +2 SD',
+    Overnutrition: '> +2 SD',
+  },
+  ha: {
+    Stunted: 'Z-score < -2 SD',
+    'Not Stunted': '-2 SD s.d. +3 SD',
+  },
+  wh: {
+    'Very Thin': 'Z-score < -3 SD',
+    Thin: '-3 SD s.d. < -2 SD',
+    Normal: '-2 SD s.d. +2 SD',
+    Obese: '> +2 SD',
+  },
+};
+
 // Menentukan label WHO/Indonesia berdasarkan label hasil dataset/model.
 function getWhoLabel(indKey, ind) {
   return WHO_LABEL_MAP[indKey]?.[ind?.result] || ind?.result || '-';
+}
+
+function getWhoCutoff(indKey, ind) {
+  return WHO_CUTOFF_MAP[indKey]?.[ind?.result] || '-';
 }
 
 // Kartu hasil untuk satu indikator: BB/U, TB/U, atau BB/TB.
@@ -74,6 +97,7 @@ function IndicatorCard({ indKey, ind, delay }) {
   const cfg = IND_CFG[indKey];
   const scfg = STATUS_CONFIG[ind.cls] || STATUS_CONFIG.normal;
   const whoLabel = getWhoLabel(indKey, ind);
+  const whoCutoff = getWhoCutoff(indKey, ind);
 
   // Animasi masuk untuk kartu indikator.
   const fadeIn = useRef(new Animated.Value(0)).current;
@@ -112,11 +136,14 @@ function IndicatorCard({ indKey, ind, delay }) {
       </View>
 
       <View style={[styles.statusChip, { backgroundColor: scfg.bg, borderColor: scfg.border }]}>
-        <View style={[styles.chipDot, { backgroundColor: scfg.text }]} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.chipLabel}>Status</Text>
-          <Text style={[styles.chipResult, { color: scfg.text }]}>{ind.result}</Text>
+        <View style={styles.statusLeft}>
+          <View style={[styles.chipDot, { backgroundColor: scfg.text }]} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.chipLabel}>Status</Text>
+            <Text style={[styles.chipResult, { color: scfg.text }]}>{ind.result}</Text>
+          </View>
         </View>
+        <Text style={[styles.zScoreText, { color: scfg.text }]}>Z: {ind.z ?? '-'}</Text>
       </View>
 
       <View style={styles.whoBox}>
@@ -128,6 +155,10 @@ function IndicatorCard({ indKey, ind, delay }) {
         <View style={styles.whoRow}>
           <Text style={styles.whoKey}>Kategori WHO</Text>
           <Text style={[styles.whoValue, { color: scfg.text }]}>{whoLabel}</Text>
+        </View>
+        <View style={styles.whoRow}>
+          <Text style={styles.whoKey}>Cut-off Z-Score</Text>
+          <Text style={styles.whoValue}>{whoCutoff}</Text>
         </View>
       </View>
 
@@ -237,7 +268,7 @@ export default function HasilScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
-  hero: { paddingTop: 56, paddingBottom: 36, paddingHorizontal: 20 },
+  hero: { paddingTop: 34, paddingBottom: 34, paddingHorizontal: 20 },
   heroTag: {
     backgroundColor: 'rgba(255,255,255,.18)',
     alignSelf: 'flex-start',
@@ -260,12 +291,12 @@ const styles = StyleSheet.create({
   },
   overallLabel: { fontSize: 14, fontWeight: FONTS.bold },
   indSection: { padding: 16 },
-  sectionTitle: { fontSize: 16, fontWeight: FONTS.bold, color: COLORS.text, marginBottom: 14 },
+  sectionTitle: { fontSize: 17, fontWeight: FONTS.bold, color: COLORS.text, marginBottom: 14 },
   indCard: {
     backgroundColor: '#fff',
-    borderRadius: RADIUS.md,
+    borderRadius: 14,
     padding: 16,
-    marginBottom: 14,
+    marginBottom: 16,
     borderLeftWidth: 4,
     ...SHADOW.md,
   },
@@ -276,22 +307,23 @@ const styles = StyleSheet.create({
   statusChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'space-between',
     borderRadius: RADIUS.sm,
     padding: 12,
     borderWidth: 1,
     marginBottom: 14,
   },
+  statusLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
   chipDot: { width: 10, height: 10, borderRadius: 5 },
   chipLabel: { fontSize: 10, color: COLORS.textMuted, fontWeight: FONTS.medium },
   chipResult: { fontSize: 15, fontWeight: FONTS.bold },
+  zScoreText: { fontSize: 13, fontWeight: FONTS.bold, marginLeft: 10 },
   whoBox: {
     backgroundColor: COLORS.bg,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: RADIUS.sm,
     padding: 12,
-    marginBottom: 14,
   },
   whoBoxTitle: { fontSize: 12, fontWeight: FONTS.bold, color: COLORS.text, marginBottom: 8 },
   whoRow: { flexDirection: 'row', gap: 8, marginBottom: 6, alignItems: 'flex-start' },

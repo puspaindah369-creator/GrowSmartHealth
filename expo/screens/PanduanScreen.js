@@ -16,10 +16,10 @@ const PANDUAN_DATA = [
     iconBg: COLORS.primaryLight,
     desc: 'Indikator WHO untuk menilai berat badan anak menurut umur. Indikator ini memetakan berat badan sangat kurang, berat badan kurang, normal, dan gizi lebih.',
     categories: [
-      { name: 'Berat badan sangat kurang (severely underweight)', cls: 'danger', status: 'Penanganan serius' },
-      { name: 'Berat badan kurang (underweight)', cls: 'warning', status: 'Perhatian' },
-      { name: 'Normal', cls: 'normal', status: 'Baik' },
-      { name: 'Gizi lebih (overweight)', cls: 'info', status: 'Perhatian' },
+      { name: 'Berat badan sangat kurang (severely underweight)', cutoff: 'Z-score < -3 SD', cls: 'danger', status: 'Penanganan serius' },
+      { name: 'Berat badan kurang (underweight)', cutoff: '-3 SD s.d. < -2 SD', cls: 'warning', status: 'Perhatian' },
+      { name: 'Normal', cutoff: '-2 SD s.d. +2 SD', cls: 'normal', status: 'Baik' },
+      { name: 'Gizi lebih (overweight)', cutoff: '> +2 SD', cls: 'info', status: 'Perhatian' },
     ],
     mapping: [
       'Malnutrition -> Berat badan sangat kurang (severely underweight)',
@@ -37,10 +37,10 @@ const PANDUAN_DATA = [
     iconBg: COLORS.successLight,
     desc: 'Indikator WHO utama untuk stunting atau gangguan pertumbuhan linear kronis. Indikator ini menilai tinggi badan anak dibandingkan umur.',
     categories: [
-      { name: 'Sangat pendek (severely stunted)', cls: 'danger', status: 'Penanganan serius' },
-      { name: 'Pendek (stunted)', cls: 'warning', status: 'Perhatian' },
-      { name: 'Normal', cls: 'normal', status: 'Baik' },
-      { name: 'Tinggi', cls: 'info', status: 'Perhatian' },
+      { name: 'Sangat pendek (severely stunted)', cutoff: 'Z-score < -3 SD', cls: 'danger', status: 'Penanganan serius' },
+      { name: 'Pendek (stunted)', cutoff: '-3 SD s.d. < -2 SD', cls: 'warning', status: 'Perhatian' },
+      { name: 'Normal', cutoff: '-2 SD s.d. +3 SD', cls: 'normal', status: 'Baik' },
+      { name: 'Tinggi', cutoff: '> +3 SD', cls: 'info', status: 'Perhatian' },
     ],
     mapping: [
       'Stunted -> Sangat pendek/Pendek',
@@ -57,11 +57,11 @@ const PANDUAN_DATA = [
     iconBg: COLORS.orangeLight,
     desc: 'Indikator WHO untuk wasting atau kekurangan gizi akut, serta gizi lebih dan obesitas berdasarkan proporsi berat badan terhadap tinggi badan.',
     categories: [
-      { name: 'Gizi buruk (severely wasted)', cls: 'danger', status: 'Penanganan serius' },
-      { name: 'Gizi kurang (wasted)', cls: 'warning', status: 'Perhatian' },
-      { name: 'Normal', cls: 'normal', status: 'Baik' },
-      { name: 'Gizi lebih (overweight)', cls: 'info', status: 'Perhatian' },
-      { name: 'Obesitas (obese)', cls: 'danger', status: 'Penanganan serius' },
+      { name: 'Gizi buruk (severely wasted)', cutoff: 'Z-score < -3 SD', cls: 'danger', status: 'Penanganan serius' },
+      { name: 'Gizi kurang (wasted)', cutoff: '-3 SD s.d. < -2 SD', cls: 'warning', status: 'Perhatian' },
+      { name: 'Normal', cutoff: '-2 SD s.d. +2 SD', cls: 'normal', status: 'Baik' },
+      { name: 'Gizi lebih (overweight)', cutoff: '> +2 SD s.d. +3 SD', cls: 'info', status: 'Perhatian' },
+      { name: 'Obesitas (obese)', cutoff: '> +3 SD', cls: 'danger', status: 'Penanganan serius' },
     ],
     mapping: [
       'Very Thin -> Gizi buruk (severely wasted)',
@@ -85,7 +85,7 @@ const CLS_COLORS = {
 // Kartu panduan untuk satu indikator, bisa dibuka/tutup detailnya.
 function PanduanCard({ item }) {
   // State untuk menampilkan atau menyembunyikan detail kategori.
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(item.icon === 'BB/U');
 
   // Render ringkasan indikator dan detail jika expanded bernilai true.
   return (
@@ -105,6 +105,7 @@ function PanduanCard({ item }) {
         <>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableCell, styles.headCat]}>Kategori WHO</Text>
+            <Text style={[styles.tableCell, styles.headCutoff]}>Cut-off Z-Score</Text>
             <Text style={[styles.tableCell, styles.headStatus]}>Status</Text>
           </View>
 
@@ -115,6 +116,7 @@ function PanduanCard({ item }) {
                 <View style={[styles.catBadge, { backgroundColor: cc.bg }]}>
                   <Text style={[styles.catBadgeText, { color: cc.text }]}>{cat.name}</Text>
                 </View>
+                <Text style={[styles.tableCell, styles.headCutoff]}>{cat.cutoff}</Text>
                 <Text style={[styles.tableCell, styles.headStatus]}>{cat.status}</Text>
               </View>
             );
@@ -170,16 +172,18 @@ export default function PanduanScreen() {
 const styles = StyleSheet.create({
   infoBanner: {
     backgroundColor: COLORS.primary,
-    borderRadius: RADIUS.md,
-    padding: 20,
+    borderRadius: 14,
+    paddingVertical: 22,
+    paddingHorizontal: 20,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   infoBannerTitle: {
     fontSize: 18,
     fontWeight: FONTS.black,
     color: '#fff',
     textAlign: 'center',
+    lineHeight: 24,
   },
   infoBannerSub: {
     fontSize: 12,
@@ -191,10 +195,10 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: '#fff',
-    borderRadius: RADIUS.md,
+    borderRadius: 14,
     padding: 16,
-    marginBottom: 14,
-    ...SHADOW.sm,
+    marginBottom: 16,
+    ...SHADOW.md,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -205,32 +209,32 @@ const styles = StyleSheet.create({
   cardIcon: {
     width: 48,
     height: 48,
-    borderRadius: RADIUS.sm,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   iconLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: FONTS.bold,
     color: COLORS.primary,
   },
   cardTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: FONTS.bold,
     color: COLORS.text,
     flexWrap: 'wrap',
   },
   cardSub: {
-    fontSize: 11,
+    fontSize: 12,
     color: COLORS.textSecondary,
     marginTop: 2,
     flexWrap: 'wrap',
   },
   cardDesc: {
-    fontSize: 13,
+    fontSize: 14,
     color: COLORS.textSecondary,
-    lineHeight: 20,
+    lineHeight: 22,
   },
 
   tableHeader: {
@@ -252,10 +256,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.text,
   },
-  headCat: { flex: 2.1, fontWeight: FONTS.bold, color: COLORS.textSecondary },
+  headCat: { flex: 2.15, fontWeight: FONTS.bold, color: COLORS.textSecondary },
+  headCutoff: { flex: 1.15, textAlign: 'left' },
   headStatus: { flex: 1, textAlign: 'left' },
   catBadge: {
-    flex: 2.1,
+    flex: 2.15,
     paddingHorizontal: 6,
     paddingVertical: 4,
     borderRadius: 6,
@@ -269,33 +274,33 @@ const styles = StyleSheet.create({
 
   mappingBox: {
     marginTop: 10,
-    padding: 10,
+    padding: 12,
     borderRadius: RADIUS.sm,
     backgroundColor: COLORS.bg,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   mappingTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: FONTS.bold,
     color: COLORS.text,
     marginBottom: 4,
   },
   mappingText: {
-    fontSize: 11,
+    fontSize: 12,
     color: COLORS.textSecondary,
     lineHeight: 17,
   },
 
   tipBox: {
     borderRadius: RADIUS.sm,
-    padding: 12,
+    padding: 14,
     marginTop: 12,
   },
   tipText: {
-    fontSize: 12,
-    lineHeight: 18,
-    fontWeight: FONTS.medium,
+    fontSize: 13,
+    lineHeight: 20,
+    fontWeight: FONTS.semibold,
   },
   expandBtn: {
     marginTop: 14,
@@ -303,7 +308,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   expandText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: FONTS.bold,
     color: COLORS.primary,
   },

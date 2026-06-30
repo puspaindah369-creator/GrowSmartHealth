@@ -644,30 +644,21 @@ def dataset_lookup_payload(
 # ============================================================
 # WHO reference helpers
 # ============================================================
-WHO_WEIGHT_MEDIAN = {
-    0: 3.3, 1: 4.3, 2: 5.3, 3: 6.0, 4: 6.7, 5: 7.3, 6: 7.9,
-    7: 8.4, 8: 8.9, 9: 9.3, 10: 9.6, 11: 9.9, 12: 10.2,
-    15: 10.9, 18: 11.5, 21: 12.0, 24: 12.5, 27: 13.0,
-    30: 13.5, 33: 13.9, 36: 14.3, 39: 14.7, 42: 15.1,
-    45: 15.5, 48: 15.9, 51: 16.3, 54: 16.7, 57: 17.1, 59: 17.4,
-}
-
-WHO_HEIGHT_MEDIAN = {
-    0: 49.9, 1: 54.7, 2: 58.4, 3: 61.4, 4: 63.9, 5: 65.9, 6: 67.6,
-    7: 69.2, 8: 70.6, 9: 72.0, 10: 73.3, 11: 74.5, 12: 75.7,
-    15: 79.1, 18: 82.3, 21: 85.1, 24: 87.8, 27: 90.3,
-    30: 92.7, 33: 94.9, 36: 96.1, 39: 98.7, 42: 100.6,
-    45: 102.5, 48: 104.3, 51: 106.0, 54: 107.7, 57: 109.4, 59: 110.5,
-}
-
-WHO_WEIGHT_SD = {
-    0: 0.45, 3: 0.75, 6: 0.85, 9: 0.95, 12: 1.0, 18: 1.1,
-    24: 1.2, 30: 1.3, 36: 1.4, 42: 1.5, 48: 1.6, 54: 1.7, 59: 1.8,
-}
-
-WHO_HEIGHT_SD = {
-    0: 1.9, 3: 2.3, 6: 2.5, 9: 2.6, 12: 2.7, 18: 2.9,
-    24: 3.1, 30: 3.2, 36: 3.3, 42: 3.4, 48: 3.5, 54: 3.6, 59: 3.7,
+WHO_REFERENCE = {
+    "M": {
+        "weight_median": {0: 3.3, 1: 4.5, 2: 5.6, 3: 6.4, 4: 7.0, 5: 7.5, 6: 7.9, 7: 8.3, 8: 8.6, 9: 8.9, 10: 9.2, 11: 9.4, 12: 9.6, 15: 10.3, 18: 10.9, 21: 11.5, 24: 12.2, 27: 12.7, 30: 13.3, 33: 13.8, 36: 14.3, 39: 14.8, 42: 15.3, 45: 15.7, 48: 16.2, 51: 16.7, 54: 17.2, 57: 17.7, 59: 18.0},
+        "weight_sd": {0: 0.45, 3: 0.75, 6: 0.85, 9: 0.95, 12: 1.08, 18: 1.25, 24: 1.4, 30: 1.55, 36: 1.75, 42: 1.95, 48: 2.12, 54: 2.38, 59: 2.52},
+        "height_median": {0: 49.9, 1: 54.7, 2: 58.4, 3: 61.4, 4: 63.9, 5: 65.9, 6: 67.6, 7: 69.2, 8: 70.6, 9: 72.0, 10: 73.3, 11: 74.5, 12: 75.7, 15: 79.1, 18: 82.3, 21: 85.1, 24: 87.8, 27: 90.4, 30: 92.9, 33: 95.2, 36: 96.1, 39: 98.7, 42: 100.6, 45: 102.5, 48: 104.3, 51: 106.0, 54: 107.7, 57: 109.4, 59: 110.5},
+        "height_sd": {0: 1.9, 3: 2.3, 6: 2.5, 9: 2.6, 12: 2.7, 18: 2.9, 24: 3.05, 30: 3.2, 36: 3.7, 42: 4.0, 48: 4.2, 54: 4.25, 59: 4.25},
+        "bmi_median": 16.1,
+    },
+    "F": {
+        "weight_median": {0: 3.2, 1: 4.2, 2: 5.1, 3: 5.8, 4: 6.4, 5: 6.9, 6: 7.3, 7: 7.6, 8: 7.9, 9: 8.2, 10: 8.5, 11: 8.7, 12: 8.9, 15: 9.6, 18: 10.2, 21: 10.9, 24: 11.5, 27: 12.1, 30: 12.7, 33: 13.3, 36: 13.9, 39: 14.4, 42: 15.0, 45: 15.5, 48: 16.1, 51: 16.6, 54: 17.2, 57: 17.7, 59: 18.0},
+        "weight_sd": {0: 0.45, 3: 0.68, 6: 0.9, 9: 0.95, 12: 1.12, 18: 1.28, 24: 1.45, 30: 1.65, 36: 1.82, 42: 2.02, 48: 2.3, 54: 2.6, 59: 2.8},
+        "height_median": {0: 49.1, 1: 53.7, 2: 57.1, 3: 59.8, 4: 62.1, 5: 64.0, 6: 65.7, 7: 67.3, 8: 68.7, 9: 70.1, 10: 71.5, 11: 72.8, 12: 74.0, 15: 77.5, 18: 80.7, 21: 83.7, 24: 86.4, 27: 88.8, 30: 91.2, 33: 93.5, 36: 95.1, 39: 97.7, 42: 99.8, 45: 101.8, 48: 103.8, 51: 105.6, 54: 107.4, 57: 109.1, 59: 110.1},
+        "height_sd": {0: 1.85, 3: 2.2, 6: 2.28, 9: 2.48, 12: 2.58, 18: 2.88, 24: 3.05, 30: 3.2, 36: 3.82, 42: 4.0, 48: 4.3, 54: 4.35, 59: 4.35},
+        "bmi_median": 15.8,
+    },
 }
 
 
@@ -690,27 +681,35 @@ def interpolate(table: Dict[int, float], age: float) -> float:
     return table[keys[0]]
 
 
-def compute_wa_z(age: float, weight: float) -> str:
+def who_reference_for_gender(gender_code: str) -> Dict[str, object]:
+    # WHO Child Growth Standards membedakan referensi anak laki-laki dan perempuan.
+    return WHO_REFERENCE.get(gender_code, WHO_REFERENCE["M"])
+
+
+def compute_wa_z(age: float, weight: float, gender_code: str) -> str:
     # Hitung z-score Weight-for-Age.
-    median = interpolate(WHO_WEIGHT_MEDIAN, age)
-    sd = interpolate(WHO_WEIGHT_SD, age)
+    ref = who_reference_for_gender(gender_code)
+    median = interpolate(ref["weight_median"], age)
+    sd = interpolate(ref["weight_sd"], age)
     z = (weight - median) / sd
     return f"{z:.2f}"
 
 
-def compute_ha_z(age: float, height: float) -> str:
+def compute_ha_z(age: float, height: float, gender_code: str) -> str:
     # Hitung z-score Height-for-Age.
-    median = interpolate(WHO_HEIGHT_MEDIAN, age)
-    sd = interpolate(WHO_HEIGHT_SD, age)
+    ref = who_reference_for_gender(gender_code)
+    median = interpolate(ref["height_median"], age)
+    sd = interpolate(ref["height_sd"], age)
     z = (height - median) / sd
     return f"{z:.2f}"
 
 
-def compute_wh_z(weight: float, height: float) -> str:
+def compute_wh_z(weight: float, height: float, gender_code: str) -> str:
     # Hitung z-score Weight-for-Height memakai BMI sebagai pendekatan sederhana.
+    ref = who_reference_for_gender(gender_code)
     height_m = height / 100.0
     bmi = weight / (height_m * height_m)
-    z = (bmi - 16.0) / 2.0
+    z = (bmi - ref["bmi_median"]) / 2.0
     return f"{z:.2f}"
 
 
@@ -1067,7 +1066,7 @@ def predict_payload(data: Dict[str, object]) -> Dict[str, object]:
         features=wa_features,
         class_map=selected_models["wa"]["label_mapping"],
         display_order=WA_DISPLAY_ORDER,
-        z_value=compute_wa_z(age=age, weight=weight),
+        z_value=compute_wa_z(age=age, weight=weight, gender_code=gender_code),
     )
     wa["model_name"] = selected_models["wa"]["model_name"]
     wa["model_scope"] = active_scope
@@ -1086,7 +1085,7 @@ def predict_payload(data: Dict[str, object]) -> Dict[str, object]:
         features=ha_features,
         class_map=selected_models["ha"]["label_mapping"],
         display_order=HA_DISPLAY_ORDER,
-        z_value=compute_ha_z(age=age, height=height),
+        z_value=compute_ha_z(age=age, height=height, gender_code=gender_code),
     )
     ha["model_name"] = selected_models["ha"]["model_name"]
     ha["model_scope"] = active_scope
@@ -1105,7 +1104,7 @@ def predict_payload(data: Dict[str, object]) -> Dict[str, object]:
         features=wh_features,
         class_map=selected_models["wh"]["label_mapping"],
         display_order=WH_DISPLAY_ORDER,
-        z_value=compute_wh_z(weight=weight, height=height),
+        z_value=compute_wh_z(weight=weight, height=height, gender_code=gender_code),
     )
     wh["model_name"] = selected_models["wh"]["model_name"]
     wh["model_scope"] = active_scope
@@ -1125,6 +1124,7 @@ def predict_payload(data: Dict[str, object]) -> Dict[str, object]:
             "active_model_mode": active_scope,
             "gender_models_available": sorted(GENDER_MODELS.keys()),
             "date_of_birth_used": date_of_birth_used,
+            "who_reference_gender": gender_code,
         },
         "input": {
             "age": age,

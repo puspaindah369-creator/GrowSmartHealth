@@ -167,7 +167,7 @@ export default function RiwayatScreen({ navigation }) {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingTop: 4 }}
+        contentContainerStyle={{ padding: 16, paddingTop: 10, paddingBottom: 36 }}
       >
         {filtered.length === 0 ? (
           <View style={styles.emptyBox}>
@@ -295,13 +295,13 @@ const styles = StyleSheet.create({
   },
   filterContent: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
+    paddingVertical: 14,
+    gap: 12,
     alignItems: 'center',
   },
   filterChip: {
     minHeight: 42,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.bg,
@@ -317,14 +317,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 10,
   },
   filterEmoji: {
-    fontSize: 16,
-    lineHeight: 18,
+    fontSize: 20,
+    lineHeight: 22,
   },
   filterText: {
-    fontSize: 12,
+    fontSize: 13,
     lineHeight: 16,
     fontWeight: FONTS.semibold,
     color: COLORS.textSecondary,
@@ -335,10 +335,10 @@ const styles = StyleSheet.create({
 
   riwayatCard: {
     backgroundColor: '#fff',
-    borderRadius: RADIUS.md,
+    borderRadius: 14,
     padding: 16,
-    marginBottom: 12,
-    ...SHADOW.sm,
+    marginBottom: 14,
+    ...SHADOW.md,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -347,26 +347,26 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: FONTS.bold,
     color: COLORS.text,
   },
   cardDate: {
-    fontSize: 11,
+    fontSize: 12,
     color: COLORS.textMuted,
     marginTop: 3,
   },
   overallBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: RADIUS.full,
     borderWidth: 1,
   },
   overallText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: FONTS.bold,
   },
 
@@ -378,11 +378,11 @@ const styles = StyleSheet.create({
   statPill: {
     backgroundColor: COLORS.bg,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: RADIUS.sm,
   },
   statText: {
-    fontSize: 11,
+    fontSize: 12,
     color: COLORS.textSecondary,
     fontWeight: FONTS.medium,
   },
@@ -394,16 +394,16 @@ const styles = StyleSheet.create({
   },
   indBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 6,
   },
   indBadgeText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: FONTS.bold,
   },
 
   longPressHint: {
-    fontSize: 9,
+    fontSize: 10,
     color: COLORS.textMuted,
     marginTop: 8,
     textAlign: 'right',
@@ -411,15 +411,15 @@ const styles = StyleSheet.create({
 
   emptyBox: {
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 110,
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: FONTS.bold,
     color: COLORS.text,
   },
   emptyDesc: {
-    fontSize: 13,
+    fontSize: 14,
     color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: 8,
@@ -441,13 +441,13 @@ const styles = StyleSheet.create({
   clearBtn: {
     alignSelf: 'flex-end',
     marginBottom: 12,
-    backgroundColor: COLORS.dangerLight,
+    backgroundColor: 'transparent',
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: RADIUS.full,
   },
   clearBtnText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: FONTS.semibold,
     color: COLORS.danger,
   },
